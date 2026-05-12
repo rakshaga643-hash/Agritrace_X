@@ -47,6 +47,7 @@ html,body{height:100%;overflow:hidden;}
 .input-sm:focus{border-color:#1a3a5c;background:#fff;}
 </style>
 <script src="i18n.js"></script>
+<script src="i18n-extra.js"></script>
 </head>
 <body>
 
@@ -84,11 +85,11 @@ html,body{height:100%;overflow:hidden;}
       <div class="telem-grid">
         <div class="telem-card" style="border-left-color:#1e6e45;">
           <div class="telem-val" id="t-bat">—</div>
-          <div class="telem-lbl">Battery</div>
+          <div class="telem-lbl" data-i18n="battery">Battery</div>
         </div>
         <div class="telem-card">
           <div class="telem-val" id="t-alt">—</div>
-          <div class="telem-lbl">Altitude (m)</div>
+          <div class="telem-lbl" data-i18n="altitudeM">Altitude (m)</div>
         </div>
         <div class="telem-card" style="border-left-color:#2563eb;">
           <div class="telem-val" id="t-spd">—</div>
@@ -107,10 +108,10 @@ html,body{height:100%;overflow:hidden;}
         <span class="row-label">GPS</span><span class="row-val" id="t-gps">—</span>
       </div>
       <div style="display:flex;justify-content:space-between;">
-        <span class="row-label">Satellites</span><span class="row-val" id="t-sat">—</span>
+        <span class="row-label" data-i18n="satellites">Satellites</span><span class="row-val" id="t-sat">—</span>
       </div>
       <div style="display:flex;justify-content:space-between;">
-        <span class="row-label">Signal</span><span class="row-val" id="t-sig">—</span>
+        <span class="row-label" data-i18n="signal">Signal</span><span class="row-val" id="t-sig">—</span>
       </div>
       <div style="display:flex;justify-content:space-between;">
         <span class="row-label">Mode</span><span class="row-val" id="t-mode">—</span>
@@ -124,11 +125,11 @@ html,body{height:100%;overflow:hidden;}
     </div>
 
     <!-- Inject Telemetry (ESP32 Simulator) -->
-    <div class="p-head" style="margin-top:auto;"><h4>ESP32 Simulator</h4><span style="font-size:.62rem;color:#2563eb;font-weight:700;">POST /api/telemetry/ingest</span></div>
+    <div class="p-head" style="margin-top:auto;"><h4 data-i18n="esp32Sim">ESP32 Simulator</h4><span style="font-size:.62rem;color:#2563eb;font-weight:700;">POST /api/telemetry/ingest</span></div>
     <div class="p-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <div><label class="row-label" style="display:block;margin-bottom:3px;">Drone ID</label><input class="input-sm" id="sim-id" value="DRN-X1"></div>
-        <div><label class="row-label" style="display:block;margin-bottom:3px;">Mission ID</label><input class="input-sm" id="sim-msn" value="MSN-2024-001"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;" data-i18n="droneId">Drone ID</label><input class="input-sm" id="sim-id" value="DRN-X1"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;" data-i18n="missionId">Mission ID</label><input class="input-sm" id="sim-msn" value="MSN-2024-001"></div>
         <div><label class="row-label" style="display:block;margin-bottom:3px;">Lat</label><input class="input-sm" id="sim-lat" value="30.9009"></div>
         <div><label class="row-label" style="display:block;margin-bottom:3px;">Lng</label><input class="input-sm" id="sim-lng" value="75.8572"></div>
         <div><label class="row-label" style="display:block;margin-bottom:3px;">Altitude (m)</label><input class="input-sm" id="sim-alt" value="45"></div>
@@ -143,8 +144,8 @@ html,body{height:100%;overflow:hidden;}
         <option value="SIMULATED">Simulator</option>
       </select>
       <button class="d-btn d-btn-green" onclick="injectTelemetry()" data-i18n="sendTelemetry">Send Telemetry Packet</button>
-      <button class="d-btn" style="background:#5b21b6;" onclick="startAutoFeed()">Auto Feed (1 Hz)</button>
-      <button class="d-btn d-btn-red" onclick="stopAutoFeed()">Stop Auto Feed</button>
+      <button class="d-btn" style="background:#5b21b6;" onclick="startAutoFeed()" data-i18n="autoFeed">Auto Feed (1 Hz)</button>
+      <button class="d-btn d-btn-red" onclick="stopAutoFeed()" data-i18n="stopAutoFeed">Stop Auto Feed</button>
     </div>
   </div>
 
@@ -167,9 +168,9 @@ html,body{height:100%;overflow:hidden;}
 
   <!-- RIGHT: Missions + Log -->
   <div class="d-panel d-panel-right">
-    <div class="p-head"><h4 data-i18n="drone">Active Missions</h4><button onclick="loadMissions()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+    <div class="p-head"><h4 data-i18n="drone" data-i18n="activeMissions">Active Missions</h4><button onclick="loadMissions()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;" data-i18n="refresh">Refresh</button></div>
     <div class="p-body" id="mission-list">
-      <p style="font-size:.75rem;color:#6b7280;">Loading missions...</p>
+      <p style="font-size:.75rem;color:#6b7280;" data-i18n="loadingMissions">Loading missions...</p>
     </div>
 
     <div class="p-head"><h4>Telemetry Log</h4><button onclick="clearLog()" style="font-size:.65rem;color:#b91c1c;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Clear</button></div>

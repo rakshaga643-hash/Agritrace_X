@@ -251,35 +251,150 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); -web
 .tts-replay-btn:hover { background: var(--green-bg); border-color: var(--green); color: var(--green); }
 .tts-replay-btn svg   { width: 11px; height: 11px; flex-shrink: 0; }
 
-/* ── Language Selector ─────────────────────────────────────────────────── */
-body { transition: opacity 0.18s ease; }
-.lang-selector { position: relative; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LANGUAGE SELECTOR — Professional Fixed Version
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Critical: nav must NOT clip the dropdown */
+.dash-nav       { overflow: visible !important; }
+.dash-nav-right { position: relative; overflow: visible; }
+.gov-topbar     { overflow: visible !important; }
+.gov-topbar-right { position: relative; overflow: visible; }
+
+/* 2. Smooth page fade on language switch */
+body.lang-switching { opacity: 0.75; }
+body { transition: opacity 0.2s ease; }
+
+/* 3. Trigger button */
+.lang-selector { position: relative; display: inline-flex; align-items: center; }
+
 .lang-trigger {
-  display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);
-  border:1px solid rgba(255,255,255,.25);border-radius:5px;
-  padding:5px 10px;color:#fff;cursor:pointer;font-size:.72rem;font-weight:600;
-  font-family:Inter,sans-serif;transition:.15s;white-space:nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.73rem;
+  font-weight: 600;
+  font-family: 'Inter', 'Noto Sans', sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
 }
-.lang-trigger:hover { background:rgba(255,255,255,.2); }
-/* Dark navbar context */
-.dash-nav .lang-trigger { color:#fff; }
-/* Light context (gov header) */
-.gov-topbar .lang-selector .lang-trigger { background:#f0f4ff;border-color:#dde5f0;color:#1a3a5c; }
+.lang-trigger:hover,
+.lang-selector.open .lang-trigger {
+  background: rgba(255,255,255,0.22);
+  border-color: rgba(255,255,255,0.45);
+}
+.lang-trigger-icon { flex-shrink: 0; opacity: 0.85; }
+.lang-trigger-caret {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+.lang-selector.open .lang-trigger-caret { transform: rotate(180deg); }
+
+/* Gov header light context */
+.gov-topbar .lang-trigger {
+  background: #f0f4ff;
+  border: 1px solid #d0daf0;
+  color: #1a3a5c;
+}
+.gov-topbar .lang-trigger:hover,
+.gov-topbar .lang-selector.open .lang-trigger {
+  background: #e0eaff;
+  border-color: #b0c4e8;
+}
+
+/* 4. Dropdown panel */
 .lang-dropdown {
-  position:absolute;right:0;top:calc(100% + 6px);z-index:9999;
-  background:#fff;border:1px solid #e5e7eb;border-radius:8px;
-  box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:180px;overflow:hidden;
-  display:none;
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 99999;           /* High above everything */
+  min-width: 196px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.05),
+    0 10px 30px rgba(0,0,0,0.13),
+    0 0 0 1px rgba(0,0,0,0.04);
+  overflow: hidden;
+  /* Prevent anything from bleeding through */
+  isolation: isolate;
 }
-.lang-selector.open .lang-dropdown { display:block;animation:fadeDown .15s ease; }
-@keyframes fadeDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.lang-selector.open .lang-dropdown {
+  display: block;
+  animation: langDropIn 0.18s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes langDropIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Dropdown header label */
+.lang-dropdown-header {
+  padding: 8px 14px 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+/* 5. Language option rows */
 .lang-option {
-  display:flex;justify-content:space-between;align-items:center;
-  padding:9px 14px;cursor:pointer;font-size:.78rem;font-family:Inter,sans-serif;
-  transition:.12s;border-bottom:1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-family: 'Inter', 'Noto Sans', 'Noto Sans Tamil', 'Noto Sans Devanagari', sans-serif;
+  font-size: 0.8rem;
+  transition: background 0.1s;
+  border-bottom: 1px solid #f8fafc;
+  gap: 8px;
 }
-.lang-option:last-child { border:none; }
-.lang-option:hover { background:#f0f7ff; }
-.lang-option.active { background:#eff6ff;font-weight:700;color:#1a3a5c; }
-.lang-opt-name { font-weight:600;color:#1a3a5c; }
-.lang-opt-en { font-size:.65rem;color:#9ca3af; }
+.lang-option:last-child { border-bottom: none; }
+.lang-option:hover      { background: #f0f7ff; }
+.lang-option:focus      { background: #e8f0ff; outline: none; }
+
+.lang-option.active {
+  background: #eff6ff;
+  font-weight: 700;
+}
+.lang-option.active .lang-opt-name { color: #1a3a5c; }
+
+.lang-opt-left  { display: flex; align-items: center; gap: 8px; }
+.lang-opt-name  { font-weight: 600; color: #1e293b; }
+.lang-opt-en    { font-size: 0.65rem; color: #94a3b8; font-weight: 400; }
+.lang-opt-check {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #1a3a5c;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.lang-option.active .lang-opt-check { opacity: 1; }
+
+/* 6. Responsive — mobile */
+@media (max-width: 640px) {
+  .lang-trigger-label { display: none; } /* hide text, show only globe icon */
+  .lang-dropdown {
+    right: -8px;
+    min-width: 170px;
+  }
+}

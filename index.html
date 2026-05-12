@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="api-client.js"></script>
 <script src="i18n.js"></script>
+<script src="i18n-extra.js"></script>
 </head>
 <body>
 
@@ -47,7 +48,7 @@
       <div><span class="hero-metric-val" id="m-farms">—</span><span class="hero-metric-label" data-i18n="registeredFarms">Registered Farms</span></div>
       <div><span class="hero-metric-val" id="m-area">—</span><span class="hero-metric-label" data-i18n="hectaresMapped">Hectares Mapped</span></div>
       <div><span class="hero-metric-val" id="m-missions">—</span><span class="hero-metric-label" data-i18n="droneMissions">Drone Missions</span></div>
-      <div><span class="hero-metric-val">v2.0</span><span class="hero-metric-label">AI Engine Active</span></div>
+      <div><span class="hero-metric-val">v2.0</span><span class="hero-metric-label" data-i18n="aiEngineActive">AI Engine Active</span></div>
     </div>
   </section>
 
@@ -64,14 +65,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 21V12h6v9"/></svg>
           </div>
           <div class="role-card-title" data-i18n="farmer">Farmer</div>
-          <div class="role-card-sub">Land & Crop Portal</div>
+          <div class="role-card-sub" data-i18n="landCropPortal">Land & Crop Portal</div>
         </div>
 
         <div class="role-card" data-role="drone" data-id="DRONE_A01" data-pin="2345" data-page="dashboard-drone.html">
           <div class="role-card-icon icon-blue">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
           </div>
-          <div class="role-card-title">Drone Agent</div>
+          <div class="role-card-title" data-i18n="droneAgent">Drone Agent</div>
           <div class="role-card-sub">Mission Control</div>
         </div>
 
@@ -87,7 +88,7 @@
           <div class="role-card-icon icon-amber">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
           </div>
-          <div class="role-card-title">Insurance Agent</div>
+          <div class="role-card-title" data-i18n="insuranceAgent">Insurance Agent</div>
           <div class="role-card-sub">PMFBY Claims</div>
         </div>
 
@@ -147,7 +148,7 @@
     </div>
     <div class="dash-nav-links">
       <a href="dashboard-farmer.html">Farmer Portal</a>
-      <a href="dashboard-drone.html">Drone Control</a>
+      <a href="dashboard-drone.html" data-i18n="droneControl">Drone Control</a>
       <a href="dashboard-ai.html">AI Intelligence</a>
       <a href="gis-map.html" data-i18n="gisMap">GIS Map</a>
       <a href="survey-images.html">Survey Images</a>
@@ -201,8 +202,8 @@
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;">Field ID</label><input id="scan-field-id" style="width:100%; border:1px solid var(--border); border-radius:var(--r-sm); padding:8px 10px; font-size:0.8rem; font-family:Inter,sans-serif; outline:none; background:var(--bg);" placeholder="e.g. FLD-0091-A"></div>
           <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;">NDVI Score (0–1)</label><input id="scan-ndvi" type="number" step="0.01" min="0" max="1" style="width:100%; border:1px solid var(--border); border-radius:var(--r-sm); padding:8px 10px; font-size:0.8rem; font-family:Inter,sans-serif; outline:none; background:var(--bg);" placeholder="0.00 – 1.00"></div>
-          <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;">Soil Moisture (%)</label><input id="scan-moisture" type="number" style="width:100%; border:1px solid var(--border); border-radius:var(--r-sm); padding:8px 10px; font-size:0.8rem; font-family:Inter,sans-serif; outline:none; background:var(--bg);" placeholder="0 – 100"></div>
-          <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;">Status</label>
+          <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;" data-i18n="soilMoistureLabel">Soil Moisture (%)</label><input id="scan-moisture" type="number" style="width:100%; border:1px solid var(--border); border-radius:var(--r-sm); padding:8px 10px; font-size:0.8rem; font-family:Inter,sans-serif; outline:none; background:var(--bg);" placeholder="0 – 100"></div>
+          <div><label style="font-size:0.65rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.05em;" data-i18n="status">Status</label>
             <select id="scan-status" style="width:100%; border:1px solid var(--border); border-radius:var(--r-sm); padding:8px 10px; font-size:0.8rem; font-family:Inter,sans-serif; outline:none; background:var(--bg);">
               <option value="healthy">Healthy</option><option value="risk">Risk</option><option value="critical">Critical</option>
             </select>

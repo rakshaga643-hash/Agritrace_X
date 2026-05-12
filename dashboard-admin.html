@@ -12,19 +12,19 @@
   <nav class="dash-nav admin-nav">
     <div class="dash-nav-left">
       <img src="logo.png" alt="AgriTrace X" class="nav-logo-img">
-      <span class="dash-role-badge admin">Super Admin</span>
+      <span class="dash-role-badge admin" data-i18n="superAdmin">Super Admin</span>
     </div>
     <div class="dash-nav-links">
-      <a href="#" class="active">Command Center</a>
+      <a href="#" class="active" data-i18n="commandCenter">Command Center</a>
       <a href="dashboard-ai.html">🧠 AI Intelligence</a>
-      <a href="#">User Management</a>
-      <a href="#">Drone Fleet</a>
-      <a href="#">District Intel</a>
-      <a href="#">System Alerts</a>
+      <a href="#" data-i18n="userManagement">User Management</a>
+      <a href="#" data-i18n="droneFleet">Drone Fleet</a>
+      <a href="#" data-i18n="districtIntel">District Intel</a>
+      <a href="#" data-i18n="systemAlerts">System Alerts</a>
     </div>
     <div class="dash-nav-right">
       <span class="dash-user" id="dash-user">ADMIN_001</span>
-      <a href="index.html" class="dash-logout">Logout</a>
+      <a href="index.html" class="dash-logout" data-i18n="logout">Logout</a>
     </div>
   </nav>
 
@@ -62,11 +62,11 @@
         <div class="d-card-header"><h3>User Management</h3><button class="d-btn" style="padding:5px 12px; font-size:0.75rem;">+ Add User</button></div>
         <div class="d-card-body" style="padding:0;">
           <table class="data-table">
-            <thead><tr><th>User ID</th><th>Name</th><th>Role</th><th>District</th><th>Last Login</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th data-i18n="userId">User ID</th><th data-i18n="name">Name</th><th data-i18n="role">Role</th><th data-i18n="district">District</th><th data-i18n="lastLogin">Last Login</th><th data-i18n="status">Status</th><th data-i18n="action">Action</th></tr></thead>
             <tbody>
-              <tr><td>FARMER_091A</td><td>Rajinder Singh</td><td><span class="role-chip farmer-chip" data-i18n="farmer">Farmer</span></td><td>Ludhiana</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
-              <tr><td>DRONE_A01</td><td>Arjun Mehta</td><td><span class="role-chip drone-chip">Drone Agent</span></td><td>Patiala</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
-              <tr><td>ANALYST_01</td><td>Priya Sharma</td><td><span class="role-chip analyst-chip">Analyst</span></td><td>Amritsar</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+              <tr><td>FARMER_091A</td><td>Rajinder Singh</td><td><span class="role-chip farmer-chip" data-i18n="farmer">Farmer</span></td><td>Ludhiana</td><td>11 May 2026</td><td><span class="status-pill green-pill" data-i18n="active">Active</span></td><td><button class="d-btn-sm" data-i18n="edit">Edit</button></td></tr>
+              <tr><td>DRONE_A01</td><td>Arjun Mehta</td><td><span class="role-chip drone-chip" data-i18n="droneAgent">Drone Agent</span></td><td>Patiala</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+              <tr><td>ANALYST_01</td><td>Priya Sharma</td><td><span class="role-chip analyst-chip" data-i18n="analyst">Analyst</span></td><td>Amritsar</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
               <tr><td>INS_AG01</td><td>Vikram Bhatia</td><td><span class="role-chip insurance-chip">Insurance</span></td><td>Jalandhar</td><td>10 May 2026</td><td><span class="status-pill amber-pill">Idle</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
             </tbody>
           </table>
@@ -78,7 +78,7 @@
         <div class="d-card-header"><h3>Drone Fleet Status</h3><span class="badge-count">16 Active</span></div>
         <div class="d-card-body" style="padding:0;">
           <table class="data-table" style="font-size:0.78rem;">
-            <thead><tr><th>Drone ID</th><th>Zone</th><th>Battery</th><th>Status</th></tr></thead>
+            <thead><tr><th data-i18n="droneId">Drone ID</th><th data-i18n="zone">Zone</th><th data-i18n="battery">Battery</th><th>Status</th></tr></thead>
             <tbody>
               <tr><td>DRN-X1</td><td>Alpha</td><td>84%</td><td><span class="status-pill green-pill">In Flight</span></td></tr>
               <tr><td>DRN-X2</td><td>Beta</td><td>67%</td><td><span class="status-pill green-pill">In Flight</span></td></tr>

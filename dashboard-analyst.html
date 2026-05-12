@@ -21,7 +21,7 @@
     </div>
     <div class="dash-nav-right">
       <span class="dash-user" id="dash-user">ANALYST_01</span>
-      <a href="index.html" class="dash-logout">Logout</a>
+      <a href="index.html" class="dash-logout" data-i18n="logout">Logout</a>
     </div>
   </nav>
 
@@ -44,11 +44,11 @@
         </div>
         <div class="d-card-body" style="padding:0;">
           <table class="data-table">
-            <thead><tr><th>Survey ID</th><th>Zone</th><th data-i18n="drone">Drone</th><th>Date</th><th>NDVI</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th data-i18n="surveyId">Survey ID</th><th data-i18n="zone">Zone</th><th data-i18n="drone">Drone</th><th data-i18n="date">Date</th><th data-i18n="ndviHeader">NDVI</th><th data-i18n="status">Status</th><th data-i18n="action">Action</th></tr></thead>
             <tbody>
-              <tr><td>SRV-2024-001</td><td>Zone Alpha</td><td>DRN-X1</td><td>11 May 2026</td><td><span class="ndvi-score green">0.82</span></td><td><span class="status-pill green-pill">Verified</span></td><td><button class="d-btn-sm">View</button></td></tr>
-              <tr><td>SRV-2024-002</td><td>Zone Beta</td><td>DRN-X2</td><td>11 May 2026</td><td><span class="ndvi-score amber">0.51</span></td><td><span class="status-pill amber-pill">Review</span></td><td><button class="d-btn-sm">Validate</button></td></tr>
-              <tr><td>SRV-2024-003</td><td>Zone Gamma</td><td>DRN-X1</td><td>10 May 2026</td><td><span class="ndvi-score red">0.31</span></td><td><span class="status-pill red-pill">Flagged</span></td><td><button class="d-btn-sm">Inspect</button></td></tr>
+              <tr><td>SRV-2024-001</td><td>Zone Alpha</td><td>DRN-X1</td><td>11 May 2026</td><td><span class="ndvi-score green">0.82</span></td><td><span class="status-pill green-pill" data-i18n="verified">Verified</span></td><td><button class="d-btn-sm" data-i18n="view">View</button></td></tr>
+              <tr><td>SRV-2024-002</td><td>Zone Beta</td><td>DRN-X2</td><td>11 May 2026</td><td><span class="ndvi-score amber">0.51</span></td><td><span class="status-pill amber-pill" data-i18n="review">Review</span></td><td><button class="d-btn-sm" data-i18n="validate">Validate</button></td></tr>
+              <tr><td>SRV-2024-003</td><td>Zone Gamma</td><td>DRN-X1</td><td>10 May 2026</td><td><span class="ndvi-score red">0.31</span></td><td><span class="status-pill red-pill" data-i18n="flagged">Flagged</span></td><td><button class="d-btn-sm">Inspect</button></td></tr>
               <tr><td>SRV-2024-004</td><td>Zone Delta</td><td>DRN-X3</td><td>10 May 2026</td><td><span class="ndvi-score green">0.78</span></td><td><span class="status-pill green-pill">Verified</span></td><td><button class="d-btn-sm">View</button></td></tr>
               <tr><td>SRV-2024-005</td><td>Zone Epsilon</td><td>DRN-X2</td><td>09 May 2026</td><td><span class="ndvi-score amber">0.44</span></td><td><span class="status-pill amber-pill">Review</span></td><td><button class="d-btn-sm">Validate</button></td></tr>
             </tbody>
@@ -87,7 +87,7 @@
         <div class="d-card-header"><h3>District Crop Intelligence Summary</h3></div>
         <div class="d-card-body" style="padding:0;">
           <table class="data-table">
-            <thead><tr><th>District</th><th>Crop Type</th><th>Area (Ha)</th><th>NDVI Avg</th><th>Health</th><th>Alert</th></tr></thead>
+            <thead><tr><th data-i18n="district">District</th><th data-i18n="cropType">Crop Type</th><th>Area (Ha)</th><th>NDVI Avg</th><th>Health</th><th>Alert</th></tr></thead>
             <tbody>
               <tr><td>Ludhiana</td><td>Wheat, Paddy</td><td>1,420</td><td>0.79</td><td><span class="status-pill green-pill">Good</span></td><td>None</td></tr>
               <tr><td>Patiala</td><td>Cotton, Mustard</td><td>980</td><td>0.61</td><td><span class="status-pill amber-pill">Monitor</span></td><td>Water Stress</td></tr>

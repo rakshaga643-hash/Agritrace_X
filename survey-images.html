@@ -46,6 +46,7 @@ html,body{height:100%;overflow:hidden;}
 .alert-err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:5px;padding:9px 12px;font-size:.75rem;font-weight:500;display:none;}
 </style>
 <script src="i18n.js"></script>
+<script src="i18n-extra.js"></script>
 </head>
 <body>
 <nav class="dash-nav">
@@ -70,7 +71,7 @@ html,body{height:100%;overflow:hidden;}
   <div class="img-panel">
 
     <!-- Stats -->
-    <div class="p-head"><h4 data-i18n="images">Image Repository</h4><button onclick="loadImages()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+    <div class="p-head"><h4 data-i18n="images" data-i18n="imageRepo">Image Repository</h4><button onclick="loadImages()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;" data-i18n="refresh">Refresh</button></div>
     <div class="p-body">
       <div class="stat-row">
         <div class="stat-box"><div class="stat-val" id="s-total">0</div><div class="stat-lbl" data-i18n="images">Images</div></div>
@@ -80,7 +81,7 @@ html,body{height:100%;overflow:hidden;}
     </div>
 
     <!-- Upload -->
-    <div class="p-head"><h4>Upload Geo-Tagged Image</h4></div>
+    <div class="p-head"><h4 data-i18n="uploadGeoImage">Upload Geo-Tagged Image</h4></div>
     <div class="p-body">
       <div class="alert-ok" id="a-ok">Image uploaded and pinned on map.</div>
       <div class="alert-err" id="a-err">Upload failed. Check fields.</div>
@@ -99,27 +100,27 @@ html,body{height:100%;overflow:hidden;}
 
       <!-- Metadata fields -->
       <div class="meta-row">
-        <div><label class="f-label">GPS Latitude</label><input class="f-inp" id="f-lat" placeholder="e.g. 30.9009"></div>
-        <div><label class="f-label">GPS Longitude</label><input class="f-inp" id="f-lng" placeholder="e.g. 75.8572"></div>
+        <div><label class="f-label" data-i18n="gpsLat">GPS Latitude</label><input class="f-inp" id="f-lat" placeholder="e.g. 30.9009"></div>
+        <div><label class="f-label" data-i18n="gpsLng">GPS Longitude</label><input class="f-inp" id="f-lng" placeholder="e.g. 75.8572"></div>
       </div>
       <div class="meta-row">
-        <div><label class="f-label">Altitude (m)</label><input class="f-inp" id="f-alt" placeholder="e.g. 45" type="number"></div>
-        <div><label class="f-label">NDVI Value (0–1)</label><input class="f-inp" id="f-ndvi" placeholder="e.g. 0.72" type="number" step="0.01" min="0" max="1"></div>
+        <div><label class="f-label" data-i18n="altitudeM">Altitude (m)</label><input class="f-inp" id="f-alt" placeholder="e.g. 45" type="number"></div>
+        <div><label class="f-label" data-i18n="ndviValue">NDVI Value (0–1)</label><input class="f-inp" id="f-ndvi" placeholder="e.g. 0.72" type="number" step="0.01" min="0" max="1"></div>
       </div>
       <div class="meta-row">
-        <div><label class="f-label">Drone ID</label><input class="f-inp" id="f-drone" value="DRN-X1"></div>
-        <div><label class="f-label">Mission ID</label><input class="f-inp" id="f-msn" placeholder="MSN-2024-001"></div>
+        <div><label class="f-label" data-i18n="droneId">Drone ID</label><input class="f-inp" id="f-drone" value="DRN-X1"></div>
+        <div><label class="f-label" data-i18n="missionId">Mission ID</label><input class="f-inp" id="f-msn" placeholder="MSN-2024-001"></div>
       </div>
-      <div><label class="f-label">AI Analysis Note</label><input class="f-inp" id="f-ai" placeholder="e.g. Wheat crop, early blight detected"></div>
-      <button onclick="useMyLocation()" class="u-btn" style="background:#2563eb;">Use My GPS Location</button>
+      <div><label class="f-label" data-i18n="aiAnalysisNote">AI Analysis Note</label><input class="f-inp" id="f-ai" placeholder="e.g. Wheat crop, early blight detected"></div>
+      <button onclick="useMyLocation()" class="u-btn" style="background:#2563eb;" data-i18n="useMyGPS">Use My GPS Location</button>
       <div class="progress-bar" id="prog-bar"><div class="progress-fill" id="prog-fill" style="width:0%;"></div></div>
       <button class="u-btn" id="upload-btn" onclick="uploadImage()">Upload &amp; Pin on Map</button>
     </div>
 
     <!-- Image list -->
-    <div class="p-head" style="margin-top:4px;"><h4>Uploaded Images</h4></div>
+    <div class="p-head" style="margin-top:4px;"><h4 data-i18n="uploadedImages">Uploaded Images</h4></div>
     <div style="padding:8px;overflow-y:auto;flex:1;" id="img-list">
-      <p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px;">No images uploaded yet.</p>
+      <p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px;" data-i18n="noImages">No images uploaded yet.</p>
     </div>
   </div>
 
@@ -127,7 +128,7 @@ html,body{height:100%;overflow:hidden;}
   <div style="position:relative;height:100%;">
     <div id="img-map"></div>
     <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:800;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 18px;display:flex;gap:16px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.08);font-size:.72rem;white-space:nowrap;">
-      <span style="font-weight:700;color:#1a3a5c;">Geo-Tagged Image Map</span>
+      <span style="font-weight:700;color:#1a3a5c;" data-i18n="geoImageMap">Geo-Tagged Image Map</span>
       <span id="map-count" style="color:#1e6e45;font-weight:700;">0 images plotted</span>
       <span style="color:#6b7280;" id="map-coord">—</span>
     </div>
@@ -265,8 +266,8 @@ function pinImageOnMap(img) {
       <div style="font-size:.8rem;font-weight:700;color:#1a3a5c;margin-bottom:4px;">${img.filename}</div>
       <table style="font-size:.72rem;width:100%;">
         <tr><td style="color:#6b7280;padding:2px 8px 2px 0;" data-i18n="drone">Drone</td><td style="font-weight:600;">${img.droneId||'—'}</td></tr>
-        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Altitude</td><td style="font-weight:600;">${img.altitude||0}m</td></tr>
-        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">NDVI</td><td style="font-weight:600;">${ndvi != null ? ndvi.toFixed(3) : '—'}</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;" data-i18n="altitude">Altitude</td><td style="font-weight:600;">${img.altitude||0}m</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;" data-i18n="ndviHeader">NDVI</td><td style="font-weight:600;">${ndvi != null ? ndvi.toFixed(3) : '—'}</td></tr>
         <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Time</td><td style="font-weight:600;">${capturedAt}</td></tr>
         ${img.aiAnalysis ? `<tr><td style="color:#6b7280;padding:2px 8px 2px 0;">AI Note</td><td style="font-weight:600;">${img.aiAnalysis}</td></tr>` : ''}
       </table>

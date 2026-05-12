@@ -47,6 +47,7 @@ html,body{height:100%;overflow:hidden;background:#f8fafc;}
 </style>
 <script src="api-client.js"></script>
 <script src="i18n.js"></script>
+<script src="i18n-extra.js"></script>
 </head>
 <body>
 
@@ -76,10 +77,10 @@ html,body{height:100%;overflow:hidden;background:#f8fafc;}
 
     <!-- Stats -->
     <div class="p-section">
-      <div class="p-head"><h4 data-i18n="gisMap">GIS Overview</h4><span id="poly-live" style="font-size:.65rem;font-weight:700;color:#1e6e45;animation:blink 2s infinite;">LIVE</span></div>
+      <div class="p-head"><h4 data-i18n="gisMap" data-i18n="gisOverview">GIS Overview</h4><span id="poly-live" style="font-size:.65rem;font-weight:700;color:#1e6e45;animation:blink 2s infinite;">LIVE</span></div>
       <div class="p-body">
         <div class="stat-row">
-          <div class="stat-box"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Polygons</div></div>
+          <div class="stat-box"><div class="stat-val" id="s-total">0</div><div class="stat-lbl" data-i18n="polygons">Polygons</div></div>
           <div class="stat-box" style="border-left-color:#1e6e45;"><div class="stat-val" id="s-area" style="color:#1e6e45;">0</div><div class="stat-lbl">Total Ha</div></div>
           <div class="stat-box" style="border-left-color:#2563eb;"><div class="stat-val" id="s-pts" style="color:#2563eb;">0</div><div class="stat-lbl">Vertices</div></div>
         </div>
@@ -94,7 +95,7 @@ html,body{height:100%;overflow:hidden;background:#f8fafc;}
 
     <!-- Register Farmland -->
     <div class="p-section">
-      <div class="p-head"><h4 data-i18n="farmName">Register Farmland</h4></div>
+      <div class="p-head"><h4 data-i18n="farmName" data-i18n="registerFarmland">Register Farmland</h4></div>
       <div class="p-body">
         <div id="alert-save" class="alert-box alert-success">Farmland saved successfully.</div>
         <div id="alert-err"  class="alert-box alert-error">Could not save. Please try again.</div>
@@ -104,13 +105,13 @@ html,body{height:100%;overflow:hidden;background:#f8fafc;}
         <input class="gis-input" id="f-area"   placeholder="Area (Ha) — auto-filled on draw" readonly style="background:#f1f5f9;">
         <textarea class="gis-input" id="f-coords" placeholder="Draw polygon on map to capture coordinates" rows="3" readonly style="background:#f1f5f9;resize:none;font-size:.7rem;"></textarea>
         <button class="gis-btn" onclick="saveFarmland()" data-i18n="saveFarmland">Save Farmland to Database</button>
-        <button class="gis-btn-outline" onclick="clearDraw()">Clear Drawing</button>
+        <button class="gis-btn-outline" onclick="clearDraw()" data-i18n="clearDrawing">Clear Drawing</button>
       </div>
     </div>
 
     <!-- Saved Farms -->
     <div class="p-section" style="flex:1;">
-      <div class="p-head"><h4>Saved Farmlands</h4><button onclick="loadFarms()" style="font-size:.68rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+      <div class="p-head"><h4>Saved Farmlands</h4><button onclick="loadFarms()" style="font-size:.68rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;" data-i18n="refresh">Refresh</button></div>
       <div class="p-body" id="farm-list">
         <p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px 0;">No farmlands registered yet.<br>Draw a polygon to begin.</p>
       </div>

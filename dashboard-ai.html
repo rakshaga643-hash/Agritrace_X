@@ -65,6 +65,7 @@ html,body{min-height:100%;background:#f8fafc;}
 .factor-row:last-child{border:none;}
 </style>
 <script src="i18n.js"></script>
+<script src="i18n-extra.js"></script>
 </head>
 <body>
 <nav class="dash-nav">
@@ -89,31 +90,31 @@ html,body{min-height:100%;background:#f8fafc;}
 <div class="ai-wrap">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
     <div>
-      <div style="font-size:1.15rem;font-weight:800;color:#1a3a5c;">Agricultural AI Intelligence Engine</div>
-      <div style="font-size:.78rem;color:#6b7280;margin-top:3px;">Real-time crop analysis powered by field data, weather API, GIS, and drone telemetry</div>
+      <div style="font-size:1.15rem;font-weight:800;color:#1a3a5c;" data-i18n="aiEngineTitle">Agricultural AI Intelligence Engine</div>
+      <div style="font-size:.78rem;color:#6b7280;margin-top:3px;" data-i18n="aiSubtitle">Real-time crop analysis powered by field data, weather API, GIS, and drone telemetry</div>
     </div>
     <button class="run-btn" id="run-btn" onclick="runAnalysis()" data-i18n="runAnalysis">Run Full Analysis</button>
   </div>
 
   <!-- Input Parameters -->
   <div class="ai-param-form">
-    <div style="font-size:.72rem;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:.05em;">Input Parameters — Override or use DB defaults</div>
+    <div style="font-size:.72rem;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:.05em;" data-i18n="inputParams">Input Parameters — Override or use DB defaults</div>
     <div class="param-grid">
-      <div class="p-group"><label>Crop Type</label>
+      <div class="p-group"><label data-i18n="cropType">Crop Type</label>
         <select class="p-inp" id="p-crop"><option>Wheat</option><option>Paddy</option><option>Cotton</option><option>Mustard</option><option>Sunflower</option></select>
       </div>
-      <div class="p-group"><label>Soil Moisture (%)</label><input class="p-inp" id="p-moist" type="number" value="62"></div>
-      <div class="p-group"><label>NDVI Score</label><input class="p-inp" id="p-ndvi" type="number" step="0.01" value="0.72"></div>
-      <div class="p-group"><label>Soil N (kg/Ha)</label><input class="p-inp" id="p-n" type="number" value="180"></div>
-      <div class="p-group"><label>Soil P (kg/Ha)</label><input class="p-inp" id="p-p" type="number" value="18"></div>
-      <div class="p-group"><label>Soil K (kg/Ha)</label><input class="p-inp" id="p-k" type="number" value="130"></div>
-      <div class="p-group"><label>Soil pH</label><input class="p-inp" id="p-ph" type="number" step="0.1" value="7.0"></div>
+      <div class="p-group"><label data-i18n="soilMoistureLabel">Soil Moisture (%)</label><input class="p-inp" id="p-moist" type="number" value="62"></div>
+      <div class="p-group"><label data-i18n="ndviScore">NDVI Score</label><input class="p-inp" id="p-ndvi" type="number" step="0.01" value="0.72"></div>
+      <div class="p-group"><label data-i18n="soilN">Soil N (kg/Ha)</label><input class="p-inp" id="p-n" type="number" value="180"></div>
+      <div class="p-group"><label data-i18n="soilP">Soil P (kg/Ha)</label><input class="p-inp" id="p-p" type="number" value="18"></div>
+      <div class="p-group"><label data-i18n="soilK">Soil K (kg/Ha)</label><input class="p-inp" id="p-k" type="number" value="130"></div>
+      <div class="p-group"><label data-i18n="soilPH">Soil pH</label><input class="p-inp" id="p-ph" type="number" step="0.1" value="7.0"></div>
       <div class="p-group"><label>Irrigation</label>
         <select class="p-inp" id="p-irr"><option>Flood</option><option>Drip</option><option>Sprinkler</option><option>Canal</option></select>
       </div>
       <div class="p-group"><label>Latitude</label><input class="p-inp" id="p-lat" value="30.9009"></div>
       <div class="p-group"><label>Longitude</label><input class="p-inp" id="p-lng" value="75.8572"></div>
-      <div class="p-group"><label>Farm Area (Ha)</label><input class="p-inp" id="p-area" value="4.5"></div>
+      <div class="p-group"><label data-i18n="farmArea">Farm Area (Ha)</label><input class="p-inp" id="p-area" value="4.5"></div>
       <div class="p-group"><label>Drone NDVI Source</label>
         <select class="p-inp" id="p-src"><option value="">Manual Input</option><option value="drone">Latest Drone</option><option value="db">Database Record</option></select>
       </div>
@@ -139,11 +140,11 @@ html,body{min-height:100%;background:#f8fafc;}
 
   <!-- Weather Bar -->
   <div class="weather-bar" id="wx-bar" style="display:none;">
-    <div class="wx-card"><div class="wx-val" id="wx-temp">—</div><div class="wx-lbl">Temperature</div></div>
-    <div class="wx-card"><div class="wx-val" id="wx-hum">—</div><div class="wx-lbl">Humidity</div></div>
-    <div class="wx-card"><div class="wx-val" id="wx-rain">—</div><div class="wx-lbl">Rain 24h</div></div>
-    <div class="wx-card"><div class="wx-val" id="wx-7d">—</div><div class="wx-lbl">Rain 7-Day</div></div>
-    <div class="wx-card"><div class="wx-val" id="wx-wind">—</div><div class="wx-lbl">Wind Speed</div></div>
+    <div class="wx-card"><div class="wx-val" id="wx-temp">—</div><div class="wx-lbl" data-i18n="temperature">Temperature</div></div>
+    <div class="wx-card"><div class="wx-val" id="wx-hum">—</div><div class="wx-lbl" data-i18n="humidity">Humidity</div></div>
+    <div class="wx-card"><div class="wx-val" id="wx-rain">—</div><div class="wx-lbl" data-i18n="rain24h">Rain 24h</div></div>
+    <div class="wx-card"><div class="wx-val" id="wx-7d">—</div><div class="wx-lbl" data-i18n="rain7d">Rain 7-Day</div></div>
+    <div class="wx-card"><div class="wx-val" id="wx-wind">—</div><div class="wx-lbl" data-i18n="windSpeed">Wind Speed</div></div>
   </div>
   <div style="text-align:center;font-size:.65rem;color:#9ca3af;margin-top:-10px;margin-bottom:14px;" id="wx-src-label"></div>
 
@@ -157,7 +158,7 @@ html,body{min-height:100%;background:#f8fafc;}
         <span id="irr-level" class="status-pill pill-green">—</span>
       </div>
       <div class="ai-card-body" id="irr-body">
-        <div class="loading-state">Run analysis to see results</div>
+        <div class="loading-state" data-i18n="runAnalysisHint">Run analysis to see results</div>
       </div>
     </div>
 
@@ -321,9 +322,9 @@ function renderFertilizer(d){
       <div class="score-info"><div class="score-level">${d.level||'—'}</div><div class="score-rec">${d.recommendation||''}</div></div>
     </div>
     ${alertsHTML(d.alerts)}
-    <div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;">Nutrient Levels</div>
+    <div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;" data-i18n="nutrientLevels">Nutrient Levels</div>
     ${nutrHTML}
-    ${recsHTML?`<div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;">Recommendations</div>${recsHTML}`:''}`;
+    ${recsHTML?`<div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;" data-i18n="recommendations">Recommendations</div>${recsHTML}`:''}`;
 }
 
 // ── Yield panel ──────────────────────────────────────────────────────────────
@@ -340,7 +341,7 @@ function renderYield(d){
       <div class="score-info"><div class="score-level">${d.level||'—'}</div><div class="score-rec">${d.recommendation||''}</div></div>
     </div>
     <table class="action-table">${actions}</table>
-    <div style="margin:10px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;">Impact Factors</div>
+    <div style="margin:10px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;" data-i18n="impactFactors">Impact Factors</div>
     ${factors}
     ${corrective}`;
 }
@@ -360,7 +361,7 @@ function renderDisaster(d){
       <div class="score-circle ${scoreClass(d.score)}">${d.score}</div>
       <div class="score-info"><div class="score-level">${d.level||'—'}</div><div class="score-rec">${d.recommendation||''}</div></div>
     </div>
-    <div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;">Risk Indicators</div>
+    <div style="margin:8px 0 4px;font-size:.65rem;font-weight:700;color:#6b7280;text-transform:uppercase;" data-i18n="riskIndicators">Risk Indicators</div>
     ${risksHTML}`;
 }
 

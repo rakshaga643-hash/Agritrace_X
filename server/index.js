@@ -61,6 +61,7 @@ app.use('/api/gis',       require('./routes/gis'));
 app.use('/api/telemetry', require('./routes/telemetry'));
 app.use('/api/images',    require('./routes/images'));
 app.use('/api/ai',        require('./routes/ai'));
+app.use('/api/iot',       require('./routes/iot'));
 
 // Serve uploaded survey images
 const path2 = require('path');

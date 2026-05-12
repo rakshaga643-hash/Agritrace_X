@@ -11,7 +11,7 @@
   <nav class="dash-nav">
     <div class="dash-nav-left">
       <img src="logo.png" alt="AgriTrace X" class="nav-logo-img">
-      <span class="dash-role-badge insurance">Insurance Agent</span>
+      <span class="dash-role-badge insurance" data-i18n="insuranceAgent">Insurance Agent</span>
     </div>
     <div class="dash-nav-links">
       <a href="#" class="active">Claims Review</a>
@@ -21,7 +21,7 @@
     </div>
     <div class="dash-nav-right">
       <span class="dash-user" id="dash-user">INS_AG01</span>
-      <a href="index.html" class="dash-logout">Logout</a>
+      <a href="index.html" class="dash-logout" data-i18n="logout">Logout</a>
     </div>
   </nav>
 
@@ -38,14 +38,14 @@
     <div class="analyst-grid">
       <!-- Claims Table -->
       <div class="d-card" style="grid-column: span 2;">
-        <div class="d-card-header"><h3>Insurance Claim Review</h3><span class="badge-count">58 Pending</span></div>
+        <div class="d-card-header"><h3 data-i18n="claimReview">Insurance Claim Review</h3><span class="badge-count">58 Pending</span></div>
         <div class="d-card-body" style="padding:0;">
           <table class="data-table">
-            <thead><tr><th>Claim ID</th><th data-i18n="farmer">Farmer</th><th>District</th><th>Crop</th><th>Damage %</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th data-i18n="claimId">Claim ID</th><th data-i18n="farmer">Farmer</th><th data-i18n="district">District</th><th>Crop</th><th data-i18n="damagePercent">Damage %</th><th data-i18n="amount">Amount</th><th data-i18n="status">Status</th><th data-i18n="action">Action</th></tr></thead>
             <tbody>
-              <tr><td>CLM-2024-0091</td><td>Rajinder Singh</td><td>Ludhiana</td><td>Wheat</td><td><span class="dmg-pill red-pill">78%</span></td><td>₹1,24,000</td><td><span class="status-pill amber-pill">Pending</span></td><td><button class="d-btn-sm">Review</button></td></tr>
-              <tr><td>CLM-2024-0092</td><td>Gurpreet Kaur</td><td>Patiala</td><td>Cotton</td><td><span class="dmg-pill red-pill">65%</span></td><td>₹87,500</td><td><span class="status-pill red-pill">Flagged</span></td><td><button class="d-btn-sm">Investigate</button></td></tr>
-              <tr><td>CLM-2024-0093</td><td>Hardev Kumar</td><td>Amritsar</td><td>Paddy</td><td><span class="dmg-pill amber-pill">42%</span></td><td>₹56,000</td><td><span class="status-pill green-pill">Approved</span></td><td><button class="d-btn-sm">View</button></td></tr>
+              <tr><td>CLM-2024-0091</td><td>Rajinder Singh</td><td>Ludhiana</td><td>Wheat</td><td><span class="dmg-pill red-pill">78%</span></td><td>₹1,24,000</td><td><span class="status-pill amber-pill" data-i18n="pending">Pending</span></td><td><button class="d-btn-sm" data-i18n="review">Review</button></td></tr>
+              <tr><td>CLM-2024-0092</td><td>Gurpreet Kaur</td><td>Patiala</td><td>Cotton</td><td><span class="dmg-pill red-pill">65%</span></td><td>₹87,500</td><td><span class="status-pill red-pill" data-i18n="flagged">Flagged</span></td><td><button class="d-btn-sm" data-i18n="investigate">Investigate</button></td></tr>
+              <tr><td>CLM-2024-0093</td><td>Hardev Kumar</td><td>Amritsar</td><td>Paddy</td><td><span class="dmg-pill amber-pill">42%</span></td><td>₹56,000</td><td><span class="status-pill green-pill">Approved</span></td><td><button class="d-btn-sm" data-i18n="view">View</button></td></tr>
               <tr><td>CLM-2024-0094</td><td>Jaswinder Brar</td><td>Jalandhar</td><td>Mustard</td><td><span class="dmg-pill amber-pill">38%</span></td><td>₹44,200</td><td><span class="status-pill amber-pill">Pending</span></td><td><button class="d-btn-sm">Review</button></td></tr>
               <tr><td>CLM-2024-0095</td><td>Satnam Dhaliwal</td><td>Patiala</td><td>Wheat</td><td><span class="dmg-pill red-pill">91%</span></td><td>₹2,10,000</td><td><span class="status-pill red-pill">Flagged</span></td><td><button class="d-btn-sm">Investigate</button></td></tr>
             </tbody>

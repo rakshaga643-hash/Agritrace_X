@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Live Camera — AgriTraceX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="i18n.js"></script>
+<style>
+html,body{min-height:100%;background:#0a0f1a;}
+.cam-wrap{margin-top:56px;display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);gap:0;}
+
+/* ── Main viewer ── */
+.cam-main{position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.cam-feed{width:100%;height:100%;object-fit:contain;display:block;}
+.cam-offline{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#4b5563;}
+.cam-offline svg{width:64px;height:64px;opacity:.4;}
+.cam-offline p{font-size:.85rem;}
+
+/* ── Overlay HUD ── */
+.cam-hud{position:absolute;top:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.hud-pill{background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(6px);border-radius:6px;padding:5px 10px;font-size:.65rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px;}
+.live-ring{width:8px;height:8px;background:#ef4444;border-radius:50%;animation:livePulse 1.2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.6)}50%{opacity:.7;box-shadow:0 0 0 5px rgba(239,68,68,0)}}
+
+/* ── Controls ── */
+.cam-controls{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.ctrl-btn{background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(6px);color:#fff;border-radius:8px;padding:9px 16px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;gap:6px;transition:.15s;}
+.ctrl-btn:hover{background:rgba(255,255,255,.15);}
+.ctrl-btn.active{background:#1e6e45;border-color:#1e6e45;}
+.ctrl-btn.danger{background:rgba(185,28,28,.7);border-color:#b91c1c;}
+
+/* ── Sidebar ── */
+.cam-sidebar{background:#0d1520;border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-section{padding:14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sidebar-label{font-size:.58rem;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.stat-key{font-size:.7rem;color:#6b7280;}
+.stat-val{font-size:.72rem;font-weight:700;color:#e5e7eb;}
+.status-indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ind-online{background:#1e6e45;box-shadow:0 0 0 3px rgba(30,110,69,.25);}
+.ind-offline{background:#b91c1c;}
+
+/* ── Snapshot gallery ── */
+.snap-grid{padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;overflow-y:auto;flex:1;}
+.snap-item{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:16/9;background:#1a2535;cursor:pointer;}
+.snap-item img{width:100%;height:100%;object-fit:cover;}
+.snap-ts{position:absolute;bottom:4px;left:4px;font-size:.52rem;color:#fff;background:rgba(0,0,0,.6);padding:2px 5px;border-radius:3px;}
+.snap-badge{position:absolute;top:4px;right:4px;background:#1a3a5c;color:#fff;font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px;}
+
+/* ── Snapshot button ── */
+.snap-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .08s;}
+.snap-flash.flash{opacity:.7;}
+
+@media(max-width:768px){
+  .cam-wrap{grid-template-columns:1fr;grid-template-rows:60vh auto;}
+  .cam-sidebar{border-left:none;border-top:1px solid rgba(255,255,255,.08);}
+  .snap-grid{max-height:200px;}
+}
+</style>
+</head>
+<body>
+<nav class="dash-nav">
+  <div class="dash-nav-brand">
+    <img src="logo.png" alt="" class="nav-logo" onerror="this.style.display='none'">
+    <span class="nav-brand-name">AgriTraceX</span>
+    <span class="nav-role-pill pill-drone">LIVE CAM</span>
+  </div>
+  <div class="dash-nav-links">
+    <a href="index.html" data-i18n="home">Home</a>
+    <a href="dashboard-drone.html" data-i18n="drone">Drone</a>
+    <a href="gis-map.html" data-i18n="gisMap">GIS Map</a>
+    <a href="survey-images.html" data-i18n="images">Images</a>
+    <a href="dashboard-camera.html" class="active">Live Cam</a>
+  </div>
+  <div class="dash-nav-right">
+    <a href="index.html" class="nav-logout" data-i18n="logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="cam-wrap">
+
+  <!-- ── Main Camera View ── -->
+  <div class="cam-main" id="cam-main">
+    <!-- Live feed -->
+    <img class="cam-feed" id="cam-feed"
+         src="http://localhost:5050/stream"
+         alt="OBS Virtual Camera Feed"
+         onerror="showOffline()"
+         onload="showOnline()">
+
+    <!-- Offline placeholder -->
+    <div class="cam-offline" id="cam-offline" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
+      </svg>
+      <p style="font-weight:700;color:#9ca3af;">Camera Offline</p>
+      <p style="font-size:.72rem;margin-top:4px;">Start <strong>camera.py</strong> and enable OBS Virtual Camera</p>
+      <button onclick="retryStream()" style="margin-top:12px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Retry Connection</button>
+    </div>
+
+    <!-- Snapshot flash overlay -->
+    <div class="snap-flash" id="snap-flash"></div>
+
+    <!-- HUD -->
+    <div class="cam-hud" id="cam-hud">
+      <div class="hud-pill" id="hud-status">
+        <span class="live-ring" id="hud-ring" style="display:none;"></span>
+        <span id="hud-text">Connecting...</span>
+      </div>
+      <div class="hud-pill" id="hud-res" style="display:none;"></div>
+      <div class="hud-pill" id="hud-time">—</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="cam-controls">
+      <button class="ctrl-btn" onclick="takeSnapshot()" id="snap-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
+        Snapshot
+      </button>
+      <button class="ctrl-btn" id="fullscreen-btn" onclick="toggleFullscreen()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+        Fullscreen
+      </button>
+      <button class="ctrl-btn danger" onclick="clearSnapshots()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Sidebar ── -->
+  <div class="cam-sidebar">
+
+    <!-- Status -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Camera Status</div>
+      <div class="stat-row">
+        <span class="stat-key">Source</span>
+        <span class="stat-val">OBS Virtual Camera</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Status</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="status-indicator" id="side-dot" style="background:#4b5563;"></span>
+          <span class="stat-val" id="side-status">Connecting</span>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Resolution</span>
+        <span class="stat-val" id="side-res">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">FPS</span>
+        <span class="stat-val" id="side-fps">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Stream</span>
+        <a href="http://localhost:5050/stream" target="_blank"
+           style="font-size:.65rem;color:#2563eb;text-decoration:none;">:5050/stream ↗</a>
+      </div>
+    </div>
+
+    <!-- Snapshots label -->
+    <div style="padding:10px 14px 4px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:.58rem;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.08em;">Snapshots</span>
+      <span style="font-size:.62rem;color:#6b7280;" id="snap-count">0 saved</span>
+    </div>
+
+    <!-- Snapshot gallery -->
+    <div class="snap-grid" id="snap-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:24px;color:#374151;font-size:.72rem;">
+        Press <strong style="color:#e5e7eb;">Snapshot</strong> to capture frames
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let camOnline   = false;
+let snapshots   = [];
+let clockTick;
+const STREAM_URL   = 'http://localhost:5050/stream';
+const STATUS_URL   = 'http://localhost:5050/status';
+const SNAPSHOT_URL = 'http://localhost:5050/snapshot';
+
+// ── Camera online/offline handlers ────────────────────────────────────────────
+function showOnline() {
+  camOnline = true;
+  document.getElementById('cam-feed').style.display    = 'block';
+  document.getElementById('cam-offline').style.display = 'none';
+  document.getElementById('hud-ring').style.display    = 'inline-block';
+  document.getElementById('hud-text').textContent      = 'LIVE';
+  document.getElementById('side-dot').className        = 'status-indicator ind-online';
+  document.getElementById('side-status').textContent   = 'Online';
+}
+
+function showOffline() {
+  camOnline = false;
+  document.getElementById('cam-feed').style.display    = 'none';
+  document.getElementById('cam-offline').style.display = 'flex';
+  document.getElementById('hud-ring').style.display    = 'none';
+  document.getElementById('hud-text').textContent      = 'Offline';
+  document.getElementById('side-dot').className        = 'status-indicator ind-offline';
+  document.getElementById('side-status').textContent   = 'Offline';
+}
+
+function retryStream() {
+  const feed = document.getElementById('cam-feed');
+  feed.src = STREAM_URL + '?t=' + Date.now();
+  feed.style.display = 'block';
+  document.getElementById('cam-offline').style.display = 'none';
+  document.getElementById('hud-text').textContent = 'Reconnecting...';
+}
+
+// ── Poll /status every 4s ─────────────────────────────────────────────────────
+async function pollStatus() {
+  try {
+    const r = await fetch(STATUS_URL, { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    if (d.online) {
+      showOnline();
+      const c = d.camera;
+      if (c.width) {
+        document.getElementById('side-res').textContent  = `${c.width}×${c.height}`;
+        document.getElementById('side-fps').textContent  = `${c.fps} fps`;
+        document.getElementById('hud-res').textContent   = `${c.width}×${c.height}`;
+        document.getElementById('hud-res').style.display = 'flex';
+      }
+    } else {
+      showOffline();
+    }
+  } catch {
+    showOffline();
+  }
+}
+
+// ── Clock HUD ─────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('hud-time').textContent =
+    new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+// ── Snapshot ──────────────────────────────────────────────────────────────────
+async function takeSnapshot() {
+  // Flash effect
+  const flash = document.getElementById('snap-flash');
+  flash.classList.add('flash');
+  setTimeout(() => flash.classList.remove('flash'), 180);
+
+  try {
+    const r = await fetch(SNAPSHOT_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('Camera not ready');
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const ts   = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+    snapshots.unshift({ url, ts, blob });
+    if (snapshots.length > 20) {
+      URL.revokeObjectURL(snapshots.pop().url);
+    }
+
+    renderSnapshots();
+  } catch (e) {
+    alert('Snapshot failed: ' + e.message);
+  }
+}
+
+function renderSnapshots() {
+  const grid = document.getElementById('snap-grid');
+  document.getElementById('snap-count').textContent = snapshots.length + ' saved';
+
+  if (!snapshots.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:#374151;font-size:.72rem;">Press <strong style="color:#e5e7eb;">Snapshot</strong> to capture frames</div>';
+    return;
+  }
+
+  grid.innerHTML = snapshots.map((s, i) => `
+    <div class="snap-item" onclick="downloadSnap(${i})">
+      <img src="${s.url}" alt="Snap ${i+1}">
+      <span class="snap-ts">${s.ts}</span>
+      <span class="snap-badge">#${snapshots.length - i}</span>
+    </div>`).join('');
+}
+
+function downloadSnap(i) {
+  const s   = snapshots[i];
+  const a   = document.createElement('a');
+  a.href    = s.url;
+  a.download= `agritracex-snap-${s.ts.replace(/:/g,'-')}.jpg`;
+  a.click();
+}
+
+function clearSnapshots() {
+  snapshots.forEach(s => URL.revokeObjectURL(s.url));
+  snapshots = [];
+  renderSnapshots();
+}
+
+// ── Fullscreen ────────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  const el = document.getElementById('cam-main');
+  if (!document.fullscreenElement) {
+    el.requestFullscreen();
+    document.getElementById('fullscreen-btn').classList.add('active');
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fullscreen-btn').classList.remove('active');
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+pollStatus();
+setInterval(pollStatus, 4000);
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
