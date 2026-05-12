@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Drone Control — AgriTraceX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="style.css">
+<style>
+html,body{height:100%;overflow:hidden;}
+.drone-layout{display:grid;grid-template-columns:300px 1fr 280px;height:calc(100vh - 56px);margin-top:56px;}
+#drone-map{width:100%;height:100%;}
+.d-panel{overflow-y:auto;background:#fff;display:flex;flex-direction:column;border-right:1px solid #e5e7eb;}
+.d-panel-right{border-right:none;border-left:1px solid #e5e7eb;}
+.p-head{padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+.p-head h4{font-size:.7rem;font-weight:700;color:#1a3a5c;margin:0;text-transform:uppercase;letter-spacing:.05em;}
+.p-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.telem-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.telem-card{background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:10px;border-left:3px solid #1a3a5c;}
+.telem-val{font-size:1.4rem;font-weight:800;color:#1a3a5c;line-height:1;}
+.telem-lbl{font-size:.62rem;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+.telem-unit{font-size:.72rem;font-weight:600;color:#374151;}
+.status-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-live{background:#16a34a;animation:pulse-dot 1.5s infinite;}
+.dot-offline{background:#9ca3af;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.status-text{font-size:.75rem;font-weight:600;color:#1a3a5c;}
+.bar-track{width:100%;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s;}
+.row-label{font-size:.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;}
+.row-val{font-size:.85rem;font-weight:700;color:#1a3a5c;}
+.log-item{padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:.72rem;color:#374151;display:flex;gap:8px;}
+.log-time{color:#9ca3af;font-weight:600;flex-shrink:0;}
+.mission-item{padding:10px 12px;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:.15s;margin-bottom:6px;}
+.mission-item:hover{border-color:#2563eb;background:#eff6ff;}
+.mission-title{font-size:.8rem;font-weight:700;color:#1a3a5c;}
+.mission-sub{font-size:.68rem;color:#6b7280;margin-top:2px;}
+.d-btn{background:#1a3a5c;color:#fff;border:none;border-radius:5px;padding:9px 14px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;width:100%;transition:.15s;}
+.d-btn:hover{background:#1e4976;}
+.d-btn-red{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+.d-btn-red:hover{background:#fee2e2;}
+.d-btn-green{background:#1e6e45;color:#fff;}
+.d-btn-green:hover{background:#155533;}
+.path-line-info{font-size:.7rem;color:#6b7280;padding:4px 0;}
+.input-sm{border:1px solid #e5e7eb;border-radius:5px;padding:7px 10px;font-size:.8rem;font-family:Inter,sans-serif;outline:none;background:#f8fafc;width:100%;}
+.input-sm:focus{border-color:#1a3a5c;background:#fff;}
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+
+<nav class="dash-nav">
+  <div class="dash-nav-brand">
+    <img src="logo.png" alt="AgriTraceX" class="nav-logo" onerror="this.style.display='none'">
+    <span class="nav-brand-name">AgriTraceX</span>
+    <span class="nav-role-pill pill-drone">DRONE CONTROL</span>
+  </div>
+  <div class="dash-nav-links">
+    <a href="index.html" data-i18n="home">Home</a>
+    <a href="dashboard-farmer.html" data-i18n="farmer">Farmer</a>
+    <a href="dashboard-drone.html" class="active" data-i18n="drone">Drone</a>
+    <a href="dashboard-ai.html" data-i18n="aiIntel">AI Intel</a>
+    <a href="gis-map.html" data-i18n="gisMap">GIS Map</a>
+  </div>
+  <div class="dash-nav-right">
+    <span class="nav-user" id="user-display">—</span>
+    <a href="index.html" class="nav-logout" data-i18n="logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="drone-layout">
+
+  <!-- LEFT: Mission + Telemetry Input -->
+  <div class="d-panel">
+    <div class="status-bar">
+      <div class="status-dot dot-offline" id="conn-dot"></div>
+      <span class="status-text" id="conn-status">Connecting to server...</span>
+    </div>
+
+    <!-- Live Telemetry Grid -->
+    <div class="p-head"><h4 data-i18n="liveTelemetry">Live Telemetry</h4><span id="last-update" style="font-size:.65rem;color:#9ca3af;">—</span></div>
+    <div class="p-body">
+      <div class="telem-grid">
+        <div class="telem-card" style="border-left-color:#1e6e45;">
+          <div class="telem-val" id="t-bat">—</div>
+          <div class="telem-lbl">Battery</div>
+        </div>
+        <div class="telem-card">
+          <div class="telem-val" id="t-alt">—</div>
+          <div class="telem-lbl">Altitude (m)</div>
+        </div>
+        <div class="telem-card" style="border-left-color:#2563eb;">
+          <div class="telem-val" id="t-spd">—</div>
+          <div class="telem-lbl">Speed (m/s)</div>
+        </div>
+        <div class="telem-card" style="border-left-color:#5b21b6;">
+          <div class="telem-val" id="t-hdg">—</div>
+          <div class="telem-lbl">Heading (°)</div>
+        </div>
+      </div>
+      <div>
+        <div class="row-label" style="margin-bottom:4px;">Battery Level</div>
+        <div class="bar-track"><div class="bar-fill" id="bat-bar" style="background:#1e6e45;width:0%;"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">GPS</span><span class="row-val" id="t-gps">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">Satellites</span><span class="row-val" id="t-sat">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">Signal</span><span class="row-val" id="t-sig">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">Mode</span><span class="row-val" id="t-mode">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">Protocol</span><span class="row-val" id="t-proto">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span class="row-label">Packets</span><span class="row-val" id="t-pkts">0</span>
+      </div>
+    </div>
+
+    <!-- Inject Telemetry (ESP32 Simulator) -->
+    <div class="p-head" style="margin-top:auto;"><h4>ESP32 Simulator</h4><span style="font-size:.62rem;color:#2563eb;font-weight:700;">POST /api/telemetry/ingest</span></div>
+    <div class="p-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Drone ID</label><input class="input-sm" id="sim-id" value="DRN-X1"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Mission ID</label><input class="input-sm" id="sim-msn" value="MSN-2024-001"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Lat</label><input class="input-sm" id="sim-lat" value="30.9009"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Lng</label><input class="input-sm" id="sim-lng" value="75.8572"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Altitude (m)</label><input class="input-sm" id="sim-alt" value="45"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Battery (%)</label><input class="input-sm" id="sim-bat" value="87"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Speed (m/s)</label><input class="input-sm" id="sim-spd" value="8.5"></div>
+        <div><label class="row-label" style="display:block;margin-bottom:3px;">Heading (°)</label><input class="input-sm" id="sim-hdg" value="045"></div>
+      </div>
+      <select class="input-sm" id="sim-proto">
+        <option value="ESP32">ESP32</option>
+        <option value="MAVLINK">MAVLink</option>
+        <option value="DJI_SDK">DJI SDK</option>
+        <option value="SIMULATED">Simulator</option>
+      </select>
+      <button class="d-btn d-btn-green" onclick="injectTelemetry()" data-i18n="sendTelemetry">Send Telemetry Packet</button>
+      <button class="d-btn" style="background:#5b21b6;" onclick="startAutoFeed()">Auto Feed (1 Hz)</button>
+      <button class="d-btn d-btn-red" onclick="stopAutoFeed()">Stop Auto Feed</button>
+    </div>
+  </div>
+
+  <!-- CENTER: Map -->
+  <div style="position:relative;height:100%;">
+    <div id="drone-map"></div>
+    <!-- Map overlay info -->
+    <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:800;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 18px;display:flex;gap:20px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.08);font-size:.72rem;white-space:nowrap;">
+      <span style="font-weight:700;color:#1a3a5c;">AgriTraceX Drone Monitor</span>
+      <span style="font-weight:700;color:#1e6e45;animation:blink 2s infinite;" id="map-live-badge">LIVE</span>
+      <span style="color:#6b7280;" id="map-coord">Move mouse over map</span>
+    </div>
+    <!-- Path stats -->
+    <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:800;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 18px;display:flex;gap:20px;font-size:.72rem;box-shadow:0 4px 12px rgba(0,0,0,.08);">
+      <span>Path points: <strong id="path-pts">0</strong></span>
+      <span>Distance: <strong id="path-dist">0 m</strong></span>
+      <span>Drone: <strong id="path-drone">—</strong></span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Missions + Log -->
+  <div class="d-panel d-panel-right">
+    <div class="p-head"><h4 data-i18n="drone">Active Missions</h4><button onclick="loadMissions()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+    <div class="p-body" id="mission-list">
+      <p style="font-size:.75rem;color:#6b7280;">Loading missions...</p>
+    </div>
+
+    <div class="p-head"><h4>Telemetry Log</h4><button onclick="clearLog()" style="font-size:.65rem;color:#b91c1c;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Clear</button></div>
+    <div style="padding:8px 14px;overflow-y:auto;flex:1;" id="telem-log">
+      <p style="font-size:.72rem;color:#9ca3af;">Waiting for telemetry packets...</p>
+    </div>
+  </div>
+</div>
+
+<div class="agri-toast" id="agri-toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="api-client.js"></script>
+<script>
+// ── Map init ────────────────────────────────────────────────────────────────
+const map = L.map('drone-map', { zoomControl:true }).setView([30.9009, 75.8572], 13);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution:'Esri World Imagery', maxZoom:19
+}).addTo(map);
+map.on('mousemove', e => {
+  document.getElementById('map-coord').textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+});
+
+// ── Drone marker ────────────────────────────────────────────────────────────
+const droneIcon = L.divIcon({
+  className:'',
+  html:`<div style="width:20px;height:20px;background:#1a3a5c;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(26,58,92,.5);"></div>
+        <div style="position:absolute;top:-2px;left:-2px;width:24px;height:24px;border-radius:50%;border:2px solid rgba(26,58,92,.3);animation:pulse-dot 1.5s infinite;"></div>`,
+  iconSize:[20,20], iconAnchor:[10,10]
+});
+
+let droneMarker = null;
+let flightPath   = null;
+let pathCoords   = [];
+let packetCount  = 0;
+
+function updateDronePosition(lat, lng, droneId) {
+  const pos = [parseFloat(lat), parseFloat(lng)];
+  if (!droneMarker) {
+    droneMarker = L.marker(pos, { icon: droneIcon, zIndexOffset:1000 }).addTo(map);
+  } else {
+    droneMarker.setLatLng(pos);
+  }
+  droneMarker.bindPopup(`<b style="font-family:Inter">${droneId}</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`);
+
+  // Update path
+  pathCoords.push(pos);
+  if (flightPath) map.removeLayer(flightPath);
+  flightPath = L.polyline(pathCoords, { color:'#2563eb', weight:2, opacity:.7, dashArray:'5,3' }).addTo(map);
+
+  document.getElementById('path-pts').textContent  = pathCoords.length;
+  document.getElementById('path-drone').textContent = droneId;
+
+  // Calc total distance
+  let dist = 0;
+  for (let i = 1; i < pathCoords.length; i++) dist += map.distance(pathCoords[i-1], pathCoords[i]);
+  document.getElementById('path-dist').textContent = dist > 1000 ? (dist/1000).toFixed(2)+' km' : Math.round(dist)+' m';
+}
+
+// ── Socket.IO connection ────────────────────────────────────────────────────
+const socket = io('http://localhost:3000');
+const connDot    = document.getElementById('conn-dot');
+const connStatus = document.getElementById('conn-status');
+
+socket.on('connect', () => {
+  connDot.className = 'status-dot dot-live';
+  connStatus.textContent = 'Connected to AgriTraceX Server';
+  addLog('Socket.IO connected — waiting for telemetry');
+});
+socket.on('disconnect', () => {
+  connDot.className = 'status-dot dot-offline';
+  connStatus.textContent = 'Disconnected — reconnecting...';
+  addLog('Connection lost');
+});
+
+// ── Receive broadcast telemetry ─────────────────────────────────────────────
+socket.on('telemetry:broadcast', data => {
+  applyTelemetry(data);
+});
+socket.on('telemetry', data => {
+  applyTelemetry(data);
+});
+
+function applyTelemetry(data) {
+  const { droneId, lat, lng, altitude, batteryPct, speed, heading, satellites, signalStrength, flightMode, protocol, timestamp } = data;
+  if (!lat || !lng) return;
+
+  // Update map marker
+  updateDronePosition(lat, lng, droneId || 'DRN-X1');
+
+  // Update UI
+  const el = id => document.getElementById(id);
+  if (batteryPct != null) {
+    el('t-bat').textContent = batteryPct + '%';
+    el('bat-bar').style.width = batteryPct + '%';
+    el('bat-bar').style.background = batteryPct < 20 ? '#b91c1c' : batteryPct < 40 ? '#b45309' : '#1e6e45';
+    el('telem-card-bat')?.style && (el('t-bat').parentElement.style.borderLeftColor = batteryPct < 20 ? '#b91c1c' : '#1e6e45');
+  }
+  if (altitude != null) el('t-alt').textContent = parseFloat(altitude).toFixed(1);
+  if (speed     != null) el('t-spd').textContent = parseFloat(speed).toFixed(1);
+  if (heading   != null) el('t-hdg').textContent = Math.round(heading) + '°';
+  el('t-gps').textContent   = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
+  if (satellites    != null) el('t-sat').textContent  = satellites;
+  if (signalStrength!= null) el('t-sig').textContent  = signalStrength + '%';
+  if (flightMode    != null) el('t-mode').textContent = flightMode;
+  if (protocol      != null) el('t-proto').textContent= protocol;
+
+  packetCount++;
+  el('t-pkts').textContent = packetCount;
+  el('last-update').textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  addLog(`[${droneId||'DRN'}] ${parseFloat(lat).toFixed(4)},${parseFloat(lng).toFixed(4)} | Alt:${altitude||'—'}m Bat:${batteryPct||'—'}%`);
+}
+
+// ── Inject telemetry via REST (ESP32 simulator) ─────────────────────────────
+let autoFeedTimer = null;
+async function injectTelemetry() {
+  const payload = {
+    droneId:        document.getElementById('sim-id').value  || 'DRN-X1',
+    missionId:      document.getElementById('sim-msn').value || undefined,
+    lat:            parseFloat(document.getElementById('sim-lat').value),
+    lng:            parseFloat(document.getElementById('sim-lng').value),
+    altitude:       parseFloat(document.getElementById('sim-alt').value),
+    batteryPct:     parseFloat(document.getElementById('sim-bat').value),
+    speed:          parseFloat(document.getElementById('sim-spd').value),
+    heading:        parseFloat(document.getElementById('sim-hdg').value),
+    satellites:     12,
+    signalStrength: 94,
+    flightMode:     'AUTO',
+    armed:          true,
+    inAir:          true,
+    protocol:       document.getElementById('sim-proto').value,
+  };
+  try {
+    const res = await fetch('http://localhost:3000/api/telemetry/ingest', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (d.success) {
+      const mode = d.flightMode ? ` [${d.flightMode}]` : '';
+      showToast(`Packet sent${mode} — ID: ${String(d.packetId).slice(-8)}`);
+      if (d.warnings && d.warnings.length) {
+        d.warnings.forEach(w => {
+          const isCritical = w.startsWith('CRITICAL');
+          addLog(`⚠ ${w}`, isCritical ? 'color:#b91c1c;font-weight:700;' : 'color:#b45309;');
+        });
+      }
+    }
+
+    else showToast('Error: ' + d.message);
+  } catch { showToast('Backend offline'); }
+}
+
+function startAutoFeed() {
+  if (autoFeedTimer) return;
+  showToast('Auto feed started at 1 Hz');
+  autoFeedTimer = setInterval(() => {
+    // Drift lat/lng for simulated movement
+    const lat = parseFloat(document.getElementById('sim-lat').value);
+    const lng = parseFloat(document.getElementById('sim-lng').value);
+    document.getElementById('sim-lat').value = (lat + (Math.random() - 0.5) * 0.002).toFixed(6);
+    document.getElementById('sim-lng').value = (lng + (Math.random() - 0.5) * 0.002).toFixed(6);
+    document.getElementById('sim-bat').value = Math.max(5, parseFloat(document.getElementById('sim-bat').value) - 0.05).toFixed(1);
+    document.getElementById('sim-alt').value = (40 + Math.sin(Date.now()/3000) * 10).toFixed(1);
+    document.getElementById('sim-hdg').value = ((parseFloat(document.getElementById('sim-hdg').value) + 2) % 360).toFixed(0);
+    injectTelemetry();
+  }, 1000);
+}
+
+function stopAutoFeed() {
+  if (autoFeedTimer) { clearInterval(autoFeedTimer); autoFeedTimer = null; showToast('Auto feed stopped'); }
+}
+
+// ── Mission list ────────────────────────────────────────────────────────────
+async function loadMissions() {
+  const el = document.getElementById('mission-list');
+  try {
+    const token = localStorage.getItem('agriToken') || '';
+    const res = await fetch('http://localhost:3000/api/telemetry/missions', { headers: token ? { Authorization:'Bearer '+token } : {} });
+    const d   = await res.json();
+    const missions = d.missions || [];
+    if (!missions.length) { el.innerHTML = '<p style="font-size:.75rem;color:#6b7280;">No missions found.</p>'; return; }
+    el.innerHTML = missions.map(m => `
+      <div class="mission-item">
+        <div class="mission-title">${m.missionId}</div>
+        <div class="mission-sub">${m.zone||'—'} &bull; ${m.purpose||'Survey'} &bull; <span class="status-pill ${statusClass(m.status)}">${m.status}</span></div>
+      </div>`).join('');
+  } catch { el.innerHTML = '<p style="font-size:.75rem;color:#b91c1c;">Backend offline.</p>'; }
+}
+
+function statusClass(s) {
+  const map = { 'In Flight':'pill-blue','Completed':'pill-green','Planned':'pill-purple','Aborted':'pill-red','Idle':'pill-amber' };
+  return map[s] || 'pill-blue';
+}
+
+// ── Log ─────────────────────────────────────────────────────────────────────
+const MAX_LOG = 50;
+function addLog(msg, style) {
+  const el = document.getElementById('telem-log');
+  if (!el) return;
+  if (el.children.length === 0 || el.querySelector('p')) el.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'log-item';
+  if (style) div.style.cssText = style;
+  div.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>${msg}`;
+  el.insertBefore(div, el.firstChild);
+  while (el.children.length > MAX_LOG) el.removeChild(el.lastChild);
+}
+
+function clearLog() { document.getElementById('telem-log').innerHTML = '<p style="font-size:.72rem;color:#9ca3af;">Log cleared.</p>'; }
+
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('agri-toast'); if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── ESP32 integration guide in console ─────────────────────────────────────
+console.log(`
+╔══════════════════════════════════════════════════════╗
+║  AgriTraceX — ESP32-S3 Telemetry Integration         ║
+╠══════════════════════════════════════════════════════╣
+║  POST http://YOUR_SERVER_IP:3000/api/telemetry/ingest ║
+║  Content-Type: application/json                      ║
+║                                                      ║
+║  {                                                   ║
+║    "droneId":    "DRN-ESP32-001",                   ║
+║    "lat":        GPS_LAT,                            ║
+║    "lng":        GPS_LNG,                            ║
+║    "altitude":   ALT_M,                              ║
+║    "batteryPct": BAT_PERCENT,                        ║
+║    "speed":      SPEED_MS,                           ║
+║    "heading":    HEADING_DEG,                        ║
+║    "satellites": SAT_COUNT,                          ║
+║    "protocol":   "ESP32"                             ║
+║  }                                                   ║
+╚══════════════════════════════════════════════════════╝
+`);
+
+// ── Init ────────────────────────────────────────────────────────────────────
+const user = localStorage.getItem('agriUser');
+if (user) { try { document.getElementById('user-display').textContent = JSON.parse(user).name || '—'; } catch {} }
+loadMissions();
+</script>
+</body>
+</html>

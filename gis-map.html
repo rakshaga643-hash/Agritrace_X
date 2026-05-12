@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GIS Land Map — AgriTraceX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+<link rel="stylesheet" href="style.css">
+<style>
+html,body{height:100%;overflow:hidden;background:#f8fafc;}
+.gis-layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 56px);margin-top:56px;}
+#gis-map{height:100%;width:100%;}
+.gis-panel{height:100%;overflow-y:auto;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;}
+.p-section{border-bottom:1px solid #e5e7eb;flex-shrink:0;}
+.p-head{padding:10px 14px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;}
+.p-head h4{font-size:0.72rem;font-weight:700;color:#1a3a5c;margin:0;text-transform:uppercase;letter-spacing:.05em;}
+.p-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.gis-input{width:100%;border:1px solid #e5e7eb;border-radius:5px;padding:8px 10px;font-size:0.8rem;font-family:Inter,sans-serif;outline:none;background:#f8fafc;}
+.gis-input:focus{border-color:#1a3a5c;background:#fff;}
+.gis-btn{background:#1a3a5c;color:#fff;border:none;border-radius:5px;padding:9px 14px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;width:100%;transition:.15s;}
+.gis-btn:hover{background:#1e4976;}
+.gis-btn-outline{background:#fff;color:#1a3a5c;border:1px solid #1a3a5c;border-radius:5px;padding:7px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;width:100%;transition:.15s;}
+.gis-btn-outline:hover{background:#eff6ff;}
+.farm-item{padding:9px 12px;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;transition:.15s;font-size:0.78rem;margin-bottom:6px;}
+.farm-item:hover{border-color:#2563eb;background:#eff6ff;}
+.farm-item-title{font-weight:700;color:#1a3a5c;}
+.farm-item-sub{color:#6b7280;font-size:0.68rem;margin-top:2px;}
+.stat-row{display:flex;gap:6px;flex-wrap:wrap;}
+.stat-box{flex:1;min-width:70px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:5px;padding:8px;text-align:center;border-left:3px solid #1a3a5c;}
+.stat-val{font-size:1.1rem;font-weight:800;color:#1a3a5c;}
+.stat-lbl{font-size:0.62rem;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;}
+/* Map overlay toolbar */
+.map-ctrl{position:absolute;top:68px;right:10px;z-index:800;display:flex;flex-direction:column;gap:5px;}
+.map-ctrl-btn{width:34px;height:34px;background:#fff;border:1px solid #e5e7eb;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:.15s;font-size:0;}
+.map-ctrl-btn:hover,.map-ctrl-btn.active{background:#1a3a5c;}
+.map-ctrl-btn:hover svg,.map-ctrl-btn.active svg{stroke:#fff;}
+.map-ctrl-btn svg{width:16px;height:16px;stroke:#374151;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.map-coord-bar{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:800;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 18px;display:flex;gap:20px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.08);font-size:0.72rem;color:#374151;white-space:nowrap;}
+.coord-val{font-weight:700;color:#1a3a5c;}
+.alert-box{padding:10px 12px;border-radius:5px;font-size:0.78rem;font-weight:500;margin-bottom:4px;display:none;}
+.alert-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+.alert-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;}
+.layer-toggle{display:flex;border:1px solid #e5e7eb;border-radius:5px;overflow:hidden;margin-bottom:8px;}
+.layer-btn{flex:1;padding:7px;font-size:0.72rem;font-weight:600;cursor:pointer;border:none;font-family:Inter,sans-serif;transition:.15s;background:#f8fafc;color:#374151;}
+.layer-btn.active{background:#1a3a5c;color:#fff;}
+</style>
+<script src="api-client.js"></script>
+<script src="i18n.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="dash-nav">
+  <div class="dash-nav-brand">
+    <img src="logo.png" alt="AgriTraceX" class="nav-logo" onerror="this.style.display='none'">
+    <span class="nav-brand-name">AgriTraceX</span>
+    <span class="nav-role-pill pill-analyst">GIS MAP</span>
+  </div>
+  <div class="dash-nav-links">
+    <a href="index.html" data-i18n="home">Home</a>
+    <a href="dashboard-farmer.html" data-i18n="farmer">Farmer</a>
+    <a href="dashboard-drone.html" data-i18n="drone">Drone</a>
+    <a href="dashboard-ai.html" data-i18n="aiIntel">AI Intel</a>
+    <a href="gis-map.html" class="active" data-i18n="gisMap">GIS Map</a>
+    <a href="survey-images.html" data-i18n="images">Images</a>
+  </div>
+  <div class="dash-nav-right">
+    <button class="nav-logout" onclick="window.location.href='index.html'" data-i18n="home">Back to Login</button>
+  </div>
+</nav>
+
+<div class="gis-layout">
+  <!-- Left Panel -->
+  <div class="gis-panel">
+
+    <!-- Stats -->
+    <div class="p-section">
+      <div class="p-head"><h4 data-i18n="gisMap">GIS Overview</h4><span id="poly-live" style="font-size:.65rem;font-weight:700;color:#1e6e45;animation:blink 2s infinite;">LIVE</span></div>
+      <div class="p-body">
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Polygons</div></div>
+          <div class="stat-box" style="border-left-color:#1e6e45;"><div class="stat-val" id="s-area" style="color:#1e6e45;">0</div><div class="stat-lbl">Total Ha</div></div>
+          <div class="stat-box" style="border-left-color:#2563eb;"><div class="stat-val" id="s-pts" style="color:#2563eb;">0</div><div class="stat-lbl">Vertices</div></div>
+        </div>
+        <div class="layer-toggle">
+          <button class="layer-btn active" onclick="setLayer('satellite')" id="btn-sat">Satellite</button>
+          <button class="layer-btn" onclick="setLayer('hybrid')" id="btn-hyb">Hybrid</button>
+          <button class="layer-btn" onclick="setLayer('street')" id="btn-str">Street</button>
+        </div>
+        <button class="gis-btn-outline" onclick="locateMe()" data-i18n="locateMe">Locate My Position</button>
+      </div>
+    </div>
+
+    <!-- Register Farmland -->
+    <div class="p-section">
+      <div class="p-head"><h4 data-i18n="farmName">Register Farmland</h4></div>
+      <div class="p-body">
+        <div id="alert-save" class="alert-box alert-success">Farmland saved successfully.</div>
+        <div id="alert-err"  class="alert-box alert-error">Could not save. Please try again.</div>
+        <input class="gis-input" id="f-name"   placeholder="Farm name (e.g. North Field)">
+        <input class="gis-input" id="f-crop"   placeholder="Current crop (e.g. Wheat)">
+        <input class="gis-input" id="f-owner"  placeholder="Owner / Farmer name">
+        <input class="gis-input" id="f-area"   placeholder="Area (Ha) — auto-filled on draw" readonly style="background:#f1f5f9;">
+        <textarea class="gis-input" id="f-coords" placeholder="Draw polygon on map to capture coordinates" rows="3" readonly style="background:#f1f5f9;resize:none;font-size:.7rem;"></textarea>
+        <button class="gis-btn" onclick="saveFarmland()" data-i18n="saveFarmland">Save Farmland to Database</button>
+        <button class="gis-btn-outline" onclick="clearDraw()">Clear Drawing</button>
+      </div>
+    </div>
+
+    <!-- Saved Farms -->
+    <div class="p-section" style="flex:1;">
+      <div class="p-head"><h4>Saved Farmlands</h4><button onclick="loadFarms()" style="font-size:.68rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+      <div class="p-body" id="farm-list">
+        <p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px 0;">No farmlands registered yet.<br>Draw a polygon to begin.</p>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="p-section">
+      <div class="p-head"><h4>How to Map Land</h4></div>
+      <div class="p-body" style="gap:6px;">
+        <div style="font-size:.72rem;color:#374151;line-height:1.6;">
+          <div style="margin-bottom:4px;"><span style="font-weight:700;color:#1a3a5c;">1.</span> Click the polygon tool in the map toolbar</div>
+          <div style="margin-bottom:4px;"><span style="font-weight:700;color:#1a3a5c;">2.</span> Click to place boundary points on the map</div>
+          <div style="margin-bottom:4px;"><span style="font-weight:700;color:#1a3a5c;">3.</span> Double-click or close the shape to finish</div>
+          <div style="margin-bottom:4px;"><span style="font-weight:700;color:#1a3a5c;">4.</span> Fill farm details and click Save</div>
+          <div><span style="font-weight:700;color:#1a3a5c;">5.</span> Saved polygons appear on the map instantly</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Map -->
+  <div style="position:relative;height:100%;">
+    <div id="gis-map"></div>
+
+    <!-- Map controls overlay -->
+    <div class="map-ctrl">
+      <button class="map-ctrl-btn" onclick="locateMe()" title="My Location">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="3 2"/></svg>
+      </button>
+      <button class="map-ctrl-btn" onclick="zoomToIndia()" title="Zoom to India">
+        <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      </button>
+    </div>
+
+    <!-- Coordinate bar -->
+    <div class="map-coord-bar">
+      <span>Lat: <span class="coord-val" id="c-lat">—</span></span>
+      <span>Lng: <span class="coord-val" id="c-lng">—</span></span>
+      <span>Zoom: <span class="coord-val" id="c-zoom">—</span></span>
+      <span id="c-area-live" style="color:#1e6e45;font-weight:700;"></span>
+    </div>
+  </div>
+</div>
+
+<div class="agri-toast" id="agri-toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+// ── Tile layers ───────────────────────────────────────────────────────────
+const TILES = {
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution:'Esri World Imagery', maxZoom:19 }),
+  hybrid:    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { attribution:'Google Hybrid', maxZoom:20 }),
+  street:    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'OpenStreetMap', maxZoom:19 })
+};
+
+// ── Map init ──────────────────────────────────────────────────────────────
+const map = L.map('gis-map', { zoomControl:true, attributionControl:true }).setView([30.9009, 75.8572], 13);
+TILES.satellite.addTo(map);
+let currentLayer = 'satellite';
+
+// ── Feature group for drawn polygons ─────────────────────────────────────
+const drawnItems = new L.FeatureGroup().addTo(map);
+const savedLayer = new L.FeatureGroup().addTo(map);
+let lastDrawn = null;
+
+// ── Leaflet.draw controls ─────────────────────────────────────────────────
+const drawControl = new L.Control.Draw({
+  position: 'topright',
+  draw: {
+    polygon:   { allowIntersection:false, showArea:true, shapeOptions:{ color:'#1a3a5c', fillColor:'#2563eb', fillOpacity:0.15, weight:2 } },
+    rectangle: { shapeOptions:{ color:'#1e6e45', fillColor:'#1e6e45', fillOpacity:0.12, weight:2 } },
+    circle: false, polyline: false, marker: false, circlemarker: false
+  },
+  edit: { featureGroup: drawnItems, remove: true }
+});
+map.addControl(drawControl);
+
+// ── Draw events ───────────────────────────────────────────────────────────
+map.on(L.Draw.Event.CREATED, e => {
+  drawnItems.clearLayers();
+  lastDrawn = e.layer;
+  drawnItems.addLayer(lastDrawn);
+
+  const latlngs = lastDrawn.getLatLngs()[0];
+  const areaM2  = L.GeometryUtil.geodesicArea(latlngs);
+  const areaHa  = (areaM2 / 10000).toFixed(3);
+  const coords  = latlngs.map(p => `[${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}]`).join('\n');
+
+  document.getElementById('f-area').value   = areaHa + ' Ha';
+  document.getElementById('f-coords').value = coords;
+  document.getElementById('c-area-live').textContent = `Drawn area: ${areaHa} Ha`;
+  updateStats();
+  showToast('Polygon drawn — fill details and click Save');
+});
+
+map.on(L.Draw.Event.DELETED, () => {
+  lastDrawn = null;
+  document.getElementById('f-area').value   = '';
+  document.getElementById('f-coords').value = '';
+  document.getElementById('c-area-live').textContent = '';
+  updateStats();
+});
+
+// ── Mouse events ──────────────────────────────────────────────────────────
+map.on('mousemove', e => {
+  document.getElementById('c-lat').textContent  = e.latlng.lat.toFixed(6);
+  document.getElementById('c-lng').textContent  = e.latlng.lng.toFixed(6);
+});
+map.on('zoomend', () => { document.getElementById('c-zoom').textContent = map.getZoom(); });
+document.getElementById('c-zoom').textContent = map.getZoom();
+
+// ── Layer switch ──────────────────────────────────────────────────────────
+function setLayer(type) {
+  if (type === currentLayer) return;
+  map.removeLayer(TILES[currentLayer]);
+  TILES[type].addTo(map);
+  TILES[type].bringToBack();
+  currentLayer = type;
+  ['sat','hyb','str'].forEach(id => document.getElementById('btn-'+id)?.classList.remove('active'));
+  const map2 = { satellite:'sat', hybrid:'hyb', street:'str' };
+  document.getElementById('btn-'+map2[type])?.classList.add('active');
+}
+
+// ── Geolocation ───────────────────────────────────────────────────────────
+function locateMe() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Detecting your location...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    map.flyTo([lat, lng], 15, { duration: 1.5 });
+    L.circleMarker([lat, lng], { radius:8, color:'#1a3a5c', fillColor:'#2563eb', fillOpacity:.8, weight:2 })
+      .addTo(map).bindPopup('<b>Your Location</b>').openPopup();
+    showToast(`Located: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+  }, () => showToast('Could not detect location. Check browser permissions.'));
+}
+
+function zoomToIndia() { map.flyTo([22.5, 80.0], 5, { duration: 1.2 }); }
+
+// ── Save farmland to backend ──────────────────────────────────────────────
+async function saveFarmland() {
+  if (!lastDrawn) { showToast('Draw a polygon on the map first'); return; }
+  const name  = document.getElementById('f-name').value.trim();
+  const crop  = document.getElementById('f-crop').value.trim();
+  const owner = document.getElementById('f-owner').value.trim();
+  const area  = parseFloat(document.getElementById('f-area').value) || 0;
+  if (!name) { showToast('Enter a farm name'); return; }
+
+  const latlngs   = lastDrawn.getLatLngs()[0];
+  const geoJSON   = lastDrawn.toGeoJSON();
+  const center    = lastDrawn.getBounds().getCenter();
+
+  const payload = {
+    farmName:  name, cropType: crop || 'Unknown', ownerName: owner,
+    totalArea: area,
+    location: { type:'Point', coordinates:[center.lng, center.lat] },
+    boundary: geoJSON.geometry,
+    coordinates: latlngs.map(p => ({ lat: p.lat, lng: p.lng }))
+  };
+
+  const savBtn = document.querySelector('.gis-btn');
+  savBtn.textContent = 'Saving...'; savBtn.disabled = true;
+
+  try {
+    const token = localStorage.getItem('agriToken');
+    const res = await fetch('http://localhost:3000/api/gis/save', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success || res.ok) {
+      document.getElementById('alert-save').style.display = 'block';
+      document.getElementById('alert-err').style.display  = 'none';
+      setTimeout(() => document.getElementById('alert-save').style.display = 'none', 4000);
+      // Add saved polygon to map with popup
+      addSavedPolygon({ name, crop, owner, area, latlngs, id: data.id || Date.now() });
+      drawnItems.clearLayers(); lastDrawn = null;
+      ['f-name','f-crop','f-owner'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f-area').value = '';
+      document.getElementById('f-coords').value = '';
+      document.getElementById('c-area-live').textContent = '';
+      loadFarms(); updateStats();
+      showToast(`Farmland "${name}" saved successfully`);
+    } else { throw new Error(data.message || 'Save failed'); }
+  } catch (err) {
+    // Fallback: save locally and show on map anyway
+    document.getElementById('alert-err').style.display  = 'block';
+    document.getElementById('alert-save').style.display = 'none';
+    setTimeout(() => document.getElementById('alert-err').style.display = 'none', 4000);
+    addSavedPolygon({ name, crop, owner, area, latlngs, id: Date.now() });
+    showToast('Backend offline — polygon shown on map (local only)');
+  } finally { savBtn.textContent = 'Save Farmland to Database'; savBtn.disabled = false; }
+}
+
+// ── Add a saved polygon to the map ────────────────────────────────────────
+function addSavedPolygon({ name, crop, owner, area, latlngs, id }) {
+  const poly = L.polygon(latlngs.map(p => [p.lat, p.lng]), {
+    color: '#1e6e45', fillColor: '#1e6e45', fillOpacity: 0.15, weight: 2
+  }).addTo(savedLayer);
+  poly.bindPopup(`
+    <div style="font-family:Inter,sans-serif;min-width:180px;">
+      <b style="font-size:.88rem;color:#1a3a5c;">${name}</b>
+      <table style="margin-top:8px;font-size:.75rem;width:100%;">
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Crop</td><td style="font-weight:600;">${crop||'—'}</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Owner</td><td style="font-weight:600;">${owner||'—'}</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Area</td><td style="font-weight:600;">${area} Ha</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">ID</td><td style="font-size:.68rem;color:#9ca3af;">${id}</td></tr>
+      </table>
+    </div>`);
+  poly.on('click', () => poly.openPopup());
+  return poly;
+}
+
+// ── Load farms from backend ───────────────────────────────────────────────
+async function loadFarms() {
+  const listEl = document.getElementById('farm-list');
+  try {
+    const token = localStorage.getItem('agriToken');
+    const res = await fetch('http://localhost:3000/api/gis/farms', {
+      headers: token ? { Authorization:`Bearer ${token}` } : {}
+    });
+    const data = await res.json();
+    const farms = data.farms || data || [];
+    if (!farms.length) { listEl.innerHTML = '<p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px 0;">No farmlands saved yet.</p>'; return; }
+    savedLayer.clearLayers();
+    listEl.innerHTML = '';
+    farms.forEach(f => {
+      // Render on map if GeoJSON boundary exists
+      if (f.boundary?.coordinates?.[0]) {
+        const coords = f.boundary.coordinates[0].map(c => [c[1], c[0]]);
+        addSavedPolygon({ name: f.farmName, crop: f.cropType, owner: f.ownerName||'—', area: f.totalArea||0, latlngs: coords.map(c=>({lat:c[0],lng:c[1]})), id: f._id });
+      }
+      // Render in list
+      const div = document.createElement('div');
+      div.className = 'farm-item';
+      div.innerHTML = `<div class="farm-item-title">${f.farmName}</div><div class="farm-item-sub">${f.cropType||'—'} &bull; ${f.totalArea||0} Ha &bull; ID: ${String(f._id).slice(-6)}</div>`;
+      div.onclick = () => { if (f.location?.coordinates) map.flyTo([f.location.coordinates[1], f.location.coordinates[0]], 15, {duration:1}); };
+      listEl.appendChild(div);
+    });
+    document.getElementById('s-total').textContent = farms.length;
+    const totalHa = farms.reduce((s, f) => s + (parseFloat(f.totalArea)||0), 0);
+    document.getElementById('s-area').textContent = totalHa.toFixed(1);
+  } catch { listEl.innerHTML = '<p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px 0;">Backend offline.</p>'; }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function clearDraw() {
+  drawnItems.clearLayers(); lastDrawn = null;
+  document.getElementById('f-area').value = '';
+  document.getElementById('f-coords').value = '';
+  document.getElementById('c-area-live').textContent = '';
+  updateStats();
+}
+
+function updateStats() {
+  const drawn = drawnItems.getLayers().length + savedLayer.getLayers().length;
+  document.getElementById('s-total').textContent = drawn;
+  let pts = 0;
+  drawnItems.eachLayer(l => { if (l.getLatLngs) pts += (l.getLatLngs()[0]||[]).length; });
+  document.getElementById('s-pts').textContent = pts;
+}
+
+function showToast(msg, dur=3500) {
+  const t = document.getElementById('agri-toast'); if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+loadFarms();
+</script>
+</body>
+</html>

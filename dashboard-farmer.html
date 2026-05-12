@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmer Dashboard — AgriTrace X</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared-dash.css">
+  <style>
+    body { overflow: auto; }
+    .farmer-layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 56px); margin-top: 56px; }
+    .left-col { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; }
+    .right-col { background: var(--bg); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Section accordion */
+    .section-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+    .section-header { padding: 13px 18px; background: linear-gradient(180deg,#fafbfc,#f5f7fa); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .section-header h4 { font-size: 0.82rem; font-weight: 700; color: var(--navy); margin: 0; }
+    .section-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* KPI strip */
+    .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .kpi-sm { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; }
+    .kpi-sm-val { font-size: 1.4rem; font-weight: 700; display: block; }
+    .kpi-sm-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; display: block; }
+
+    /* Fertilizer table */
+    .fert-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .fert-table th { background: #f7fafc; padding: 9px 12px; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border); text-align: left; }
+    .fert-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .fert-table tr:last-child td { border-bottom: none; }
+    .fert-table tr:hover td { background: #f7fafc; }
+
+    /* AI cards */
+    .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .ai-card { border-radius: var(--r-md); padding: 14px 16px; border: 1px solid; }
+    .ai-card .ai-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
+    .ai-card p { font-size: 0.77rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+    .ai-card.green  { background: #f0fff4; border-color: #c6f6d5; }
+    .ai-card.amber  { background: #fffff0; border-color: #fbd38d; }
+    .ai-card.red    { background: #fff5f5; border-color: #fed7d7; }
+    .ai-card.blue   { background: #ebf8ff; border-color: #bee3f8; }
+
+    /* Yield section */
+    .yield-strip { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: center; }
+    .big-yield { background: var(--green-bg); border: 1px solid var(--green-light); border-radius: var(--r-lg); padding: 24px; text-align: center; }
+    .big-yield-num { font-size: 2.4rem; font-weight: 700; color: var(--green); }
+    .big-yield-label { font-size: 0.75rem; color: #276749; margin-top: 4px; }
+    .yield-details { display: flex; flex-direction: column; gap: 8px; }
+    .yield-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 0.78rem; }
+    .yield-row-label { color: var(--text-muted); font-weight: 500; }
+    .yield-row-val { font-weight: 700; color: var(--navy); }
+
+    /* Disaster alerts */
+    .alert-strip { display: flex; flex-direction: column; gap: 8px; }
+    .dis-alert { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-sm); border-left: 4px solid; }
+    .dis-alert.red    { background: #fff5f5; border-color: var(--red); }
+    .dis-alert.amber  { background: #fffff0; border-color: var(--amber); }
+    .dis-alert.blue   { background: #ebf8ff; border-color: var(--blue); }
+    .dis-alert-icon   { font-size: 1.3rem; flex-shrink: 0; }
+    .dis-alert h5     { font-size: 0.82rem; margin-bottom: 2px; color: var(--navy); }
+    .dis-alert p      { font-size: 0.75rem; color: var(--text-secondary); margin: 0; }
+  </style>
+<script src="i18n.js"></script>
+</head>
+<body>
+  <nav class="dash-nav">
+    <div class="dash-nav-left">
+      <img src="logo.png" alt="AgriTrace X" class="nav-logo-img">
+      <span class="dash-role-badge farmer">Farmer Portal</span>
+    </div>
+    <div class="dash-nav-links">
+      <a href="#" class="active">Dashboard</a>
+      <a href="dashboard-ai.html">🧠 AI Intelligence</a>
+      <a href="#">Land Records</a>
+      <a href="#">Crop Monitor</a>
+      <a href="#">Insurance</a>
+      <a href="#">Schemes</a>
+    </div>
+    <div class="dash-nav-right">
+      <span class="dash-user" id="dash-user">FARMER_091A</span>
+      <a href="index.html" class="dash-logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="farmer-layout">
+
+    <!-- LEFT COLUMN: Forms -->
+    <div class="left-col">
+
+      <!-- Land Registration -->
+      <div class="section-block" style="border-radius:0; border:none; border-bottom:1px solid var(--border);">
+        <div class="section-header">
+          <h4>📋 Land Registration</h4>
+          <span class="status-pill green-pill">Registered</span>
+        </div>
+        <div class="section-body">
+          <div class="form-grid-2">
+            <div class="form-group"><label>Survey No.</label><input class="form-input" value="PB-LDH-091A"></div>
+            <div class="form-group"><label>Khasra No.</label><input class="form-input" value="KH-4421"></div>
+          </div>
+          <div class="form-group"><label>Village / Gram Panchayat</label><input class="form-input" value="Raikot, Ludhiana"></div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Tehsil</label><input class="form-input" value="Ludhiana West"></div>
+            <div class="form-group"><label>District</label><input class="form-input" value="Ludhiana"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Total Area (Ha)</label><input class="form-input" type="number" value="4.5"></div>
+            <div class="form-group"><label>Cultivated (Ha)</label><input class="form-input" type="number" value="4.2"></div>
+          </div>
+          <div class="form-group"><label>Ownership Type</label>
+            <select class="form-input"><option>Owner</option><option>Tenant</option><option>Sharecropper</option></select>
+          </div>
+          <button class="d-btn" style="width:100%;">Save Land Record</button>
+        </div>
+      </div>
+
+      <!-- Crop Details -->
+      <div class="section-block" style="border-radius:0; border:none; border-bottom:1px solid var(--border);">
+        <div class="section-header"><h4>🌾 Crop Details</h4></div>
+        <div class="section-body">
+          <div class="form-grid-2">
+            <div class="form-group"><label>Crop Type</label>
+              <select class="form-input"><option>Wheat</option><option>Paddy</option><option>Cotton</option><option>Mustard</option><option>Sunflower</option></select>
+            </div>
+            <div class="form-group"><label>Variety</label><input class="form-input" value="HD-2967"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Season</label>
+              <select class="form-input"><option>Rabi 2025-26</option><option>Kharif 2026</option></select>
+            </div>
+            <div class="form-group"><label>Sowing Date</label><input class="form-input" type="date" value="2025-11-15"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Expected Harvest</label><input class="form-input" type="date" value="2026-04-10"></div>
+            <div class="form-group"><label>Seed Source</label>
+              <select class="form-input"><option>Government</option><option>Private</option><option>Own Seed</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Seed Rate (kg/Ha)</label><input class="form-input" type="number" value="120"></div>
+          <button class="d-btn" style="width:100%;">Update Crop Details</button>
+        </div>
+      </div>
+
+      <!-- Irrigation Details -->
+      <div class="section-block" style="border-radius:0; border:none; border-bottom:1px solid var(--border);">
+        <div class="section-header"><h4>💧 Irrigation Details</h4></div>
+        <div class="section-body">
+          <div class="form-grid-2">
+            <div class="form-group"><label>Source</label>
+              <select class="form-input"><option>Canal</option><option>Borewell</option><option>Rainwater</option><option>Pond</option></select>
+            </div>
+            <div class="form-group"><label>Method</label>
+              <select class="form-input"><option>Flood</option><option>Drip</option><option>Sprinkler</option><option>Furrow</option></select>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Frequency</label>
+              <select class="form-input"><option>Every 7 days</option><option>Every 10 days</option><option>Every 14 days</option></select>
+            </div>
+            <div class="form-group"><label>Last Irrigated</label><input class="form-input" type="date" value="2026-05-10"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Current Moisture (%)</label><input class="form-input" type="number" value="65" id="moist-input"></div>
+            <div class="form-group"><label>Water Used (m³/Ha)</label><input class="form-input" type="number" value="320"></div>
+          </div>
+          <button class="d-btn" style="width:100%;">Log Irrigation</button>
+        </div>
+      </div>
+
+      <!-- Fertilizer History -->
+      <div class="section-block" style="border-radius:0; border:none; border-bottom:1px solid var(--border);">
+        <div class="section-header">
+          <h4>🧪 Fertilizer History</h4>
+          <button class="d-btn-sm" onclick="addFertRow()">+ Add</button>
+        </div>
+        <div class="section-body" style="padding:0;">
+          <table class="fert-table">
+            <thead><tr><th>Date</th><th>Fertilizer</th><th>Dose (kg/Ha)</th><th>Stage</th></tr></thead>
+            <tbody id="fert-body">
+              <tr><td>15 Nov 2025</td><td>DAP</td><td>50</td><td>Sowing</td></tr>
+              <tr><td>10 Dec 2025</td><td>Urea</td><td>65</td><td>Tillering</td></tr>
+              <tr><td>15 Jan 2026</td><td>MOP</td><td>30</td><td>Jointing</td></tr>
+              <tr><td>20 Feb 2026</td><td>Urea (Top-up)</td><td>35</td><td>Grain Fill</td></tr>
+            </tbody>
+          </table>
+          <div style="padding:12px 14px; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px;" id="fert-add" style="display:none;">
+            <input class="form-input" id="f-date" type="date" style="font-size:0.72rem; padding:6px;">
+            <input class="form-input" id="f-name" placeholder="Fertilizer" style="font-size:0.72rem; padding:6px;">
+            <input class="form-input" id="f-dose" placeholder="Dose" type="number" style="font-size:0.72rem; padding:6px;">
+            <input class="form-input" id="f-stage" placeholder="Stage" style="font-size:0.72rem; padding:6px;">
+          </div>
+          <div style="padding:8px 14px; border-top:1px solid var(--border);">
+            <button class="d-btn" style="width:100%; font-size:0.75rem;" onclick="saveFertRow()">Save Fertilizer Entry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Soil Data -->
+      <div class="section-block" style="border-radius:0; border:none;">
+        <div class="section-header"><h4>🪨 Soil Health Data</h4></div>
+        <div class="section-body">
+          <div class="form-grid-2">
+            <div class="form-group"><label>Soil Type</label>
+              <select class="form-input"><option>Loamy</option><option>Sandy Loam</option><option>Clay</option><option>Black</option></select>
+            </div>
+            <div class="form-group"><label>pH Level</label><input class="form-input" type="number" step="0.1" value="7.2"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Nitrogen (kg/Ha)</label><input class="form-input" type="number" value="210"></div>
+            <div class="form-group"><label>Phosphorus (kg/Ha)</label><input class="form-input" type="number" value="18"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group"><label>Potassium (kg/Ha)</label><input class="form-input" type="number" value="145"></div>
+            <div class="form-group"><label>Organic Carbon (%)</label><input class="form-input" type="number" step="0.1" value="0.6"></div>
+          </div>
+          <div class="form-group"><label>Last Soil Test Date</label><input class="form-input" type="date" value="2025-10-20"></div>
+          <button class="d-btn" style="width:100%;">Update Soil Record</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Analytics -->
+    <div class="right-col">
+
+      <!-- KPI Strip -->
+      <div class="kpi-strip">
+        <div class="kpi-sm"><span class="kpi-sm-val" style="color:var(--green);">4.2 MT</span><span class="kpi-sm-label">Predicted Yield/Ha</span></div>
+        <div class="kpi-sm"><span class="kpi-sm-val" style="color:var(--blue);">65%</span><span class="kpi-sm-label">Soil Moisture</span></div>
+        <div class="kpi-sm"><span class="kpi-sm-val" style="color:var(--amber);">28.4°C</span><span class="kpi-sm-label">Field Temperature</span></div>
+        <div class="kpi-sm"><span class="kpi-sm-val" style="color:var(--navy);">0.82</span><span class="kpi-sm-label">NDVI Score</span></div>
+      </div>
+
+      <!-- Yield Prediction -->
+      <div class="section-block">
+        <div class="section-header"><h4>📊 AI Yield Prediction</h4><span style="font-size:0.65rem; background:var(--blue-bg); color:var(--blue); padding:3px 8px; border-radius:999px; font-weight:700;">Gemini AI</span></div>
+        <div class="section-body">
+          <div class="yield-strip">
+            <div class="big-yield">
+              <div class="big-yield-num">4.2</div>
+              <div style="font-size:0.7rem; color:#276749; font-weight:600;">MT / Ha</div>
+              <div class="big-yield-label">Wheat — Rabi 2025-26</div>
+            </div>
+            <div class="yield-details">
+              <div class="yield-row"><span class="yield-row-label">Total Expected (4.5 Ha)</span><span class="yield-row-val" style="color:var(--green);">18.9 MT</span></div>
+              <div class="yield-row"><span class="yield-row-label">Market Price (MSP)</span><span class="yield-row-val">₹2,275 / quintal</span></div>
+              <div class="yield-row"><span class="yield-row-label">Estimated Revenue</span><span class="yield-row-val" style="color:var(--green);">₹4,30,000</span></div>
+              <div class="yield-row"><span class="yield-row-label">Input Cost Est.</span><span class="yield-row-val" style="color:var(--amber);">₹82,000</span></div>
+              <div class="yield-row"><span class="yield-row-label">Net Profit Est.</span><span class="yield-row-val" style="color:var(--green); font-size:1rem;">₹3,48,000</span></div>
+              <div class="yield-row"><span class="yield-row-label">Harvest Window</span><span class="yield-row-val">Apr 10–20, 2026</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Recommendations -->
+      <div class="section-block">
+        <div class="section-header"><h4>🤖 AI Crop Recommendations</h4></div>
+        <div class="section-body">
+          <div class="ai-grid">
+            <div class="ai-card green">
+              <div class="ai-title">💧 Irrigation Advisory</div>
+              <p>Soil moisture at 65% — within optimal range. Next irrigation recommended in <strong>3 days</strong>. Switch to drip system to save 30% water.</p>
+            </div>
+            <div class="ai-card amber">
+              <div class="ai-title">🧪 Fertilizer Recommendation</div>
+              <p>Apply <strong>Urea 25 kg/Ha</strong> within 7 days. Nitrogen index shows mild deficiency at grain-filling stage. Foliar spray of zinc sulphate advised.</p>
+            </div>
+            <div class="ai-card red">
+              <div class="ai-title">⚠️ Pest Alert — Nearby</div>
+              <p>Locust swarm detected 12 km NE (Zone Gamma). Apply <strong>Chlorpyriphos 50% EC</strong> as preventive spray along field borders immediately.</p>
+            </div>
+            <div class="ai-card blue">
+              <div class="ai-title">🌱 Crop Growth Stage</div>
+              <p>Wheat currently at <strong>grain-filling stage</strong>. Avoid waterlogging. Ensure 2 protective irrigations before harvest. No urea after this stage.</p>
+            </div>
+            <div class="ai-card green">
+              <div class="ai-title">📅 Harvest Planning</div>
+              <p>Optimal harvest window: <strong>Apr 10–20</strong>. Pre-book harvester by April 1. Ensure threshing floor is ready. Expected moisture at harvest: 12–14%.</p>
+            </div>
+            <div class="ai-card amber">
+              <div class="ai-title">🏦 Market Intelligence</div>
+              <p>MSP: ₹2,275/q. Local mandi rate: ₹2,310/q (+1.5% premium). Recommended: Hold 30% stock post-harvest for better price in May-June.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Disaster Alerts -->
+      <div class="section-block">
+        <div class="section-header"><h4>🚨 Disaster &amp; Weather Alerts</h4><span class="badge-count red-badge">3 Active</span></div>
+        <div class="section-body">
+          <div class="alert-strip">
+            <div class="dis-alert red">
+              <div class="dis-alert-icon">🦗</div>
+              <div>
+                <h5>Locust Infestation Alert — HIGH</h5>
+                <p>Swarm detected in Zone Gamma (12 km NE). State Agriculture Dept. has dispatched spray drones. Farmers advised to be on alert and report sightings immediately.</p>
+              </div>
+            </div>
+            <div class="dis-alert amber">
+              <div class="dis-alert-icon">🌧️</div>
+              <div>
+                <h5>Heavy Rainfall Warning — 14–15 May 2026</h5>
+                <p>IMD forecast: 60–80mm rainfall expected. Ensure field drainage channels are clear. Avoid pesticide application 24 hours before and after rain.</p>
+              </div>
+            </div>
+            <div class="dis-alert blue">
+              <div class="dis-alert-icon">🌊</div>
+              <div>
+                <h5>Flood Watch — Sutlej River Corridor</h5>
+                <p>River level rising near Ludhiana district. Low-lying farms advised to harvest early if crops are mature. Contact Block Development Office for evacuation support.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PMFBY Insurance -->
+      <div class="section-block">
+        <div class="section-header"><h4>🛡️ PMFBY Insurance Status</h4><span class="status-pill green-pill">Covered</span></div>
+        <div class="section-body">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+            <div class="yield-row" style="flex-direction:column; align-items:flex-start; gap:3px;"><span class="yield-row-label">Policy No.</span><span class="yield-row-val" style="font-size:0.8rem; color:var(--blue);">PMFBY-PB-2026-091</span></div>
+            <div class="yield-row" style="flex-direction:column; align-items:flex-start; gap:3px;"><span class="yield-row-label">Sum Insured</span><span class="yield-row-val" style="font-size:0.9rem;">₹1,24,000</span></div>
+            <div class="yield-row" style="flex-direction:column; align-items:flex-start; gap:3px;"><span class="yield-row-label">Premium Paid</span><span class="yield-row-val" style="color:var(--green);">₹3,100 ✓</span></div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <button class="d-btn" style="flex:1; background:var(--green);">File Insurance Claim</button>
+            <button class="d-btn" style="flex:1; background:var(--blue);">Track Existing Claim</button>
+            <button class="d-btn" style="flex:1;">Download Policy PDF</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('dash-user').textContent = sessionStorage.getItem('agriUser') || 'FARMER_091A';
+
+    function addFertRow() {
+      document.getElementById('fert-add').style.display = 'grid';
+    }
+    function saveFertRow() {
+      const d = document.getElementById('f-date').value;
+      const n = document.getElementById('f-name').value;
+      const dose = document.getElementById('f-dose').value;
+      const s = document.getElementById('f-stage').value;
+      if (!n) return;
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${d||'—'}</td><td>${n}</td><td>${dose||'—'}</td><td>${s||'—'}</td>`;
+      document.getElementById('fert-body').appendChild(row);
+      ['f-date','f-name','f-dose','f-stage'].forEach(id => document.getElementById(id).value='');
+    }
+  </script>
+</body>
+</html>

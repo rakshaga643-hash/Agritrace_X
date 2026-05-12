@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Survey Images — AgriTraceX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="style.css">
+<style>
+html,body{height:100%;overflow:hidden;}
+.img-layout{display:grid;grid-template-columns:340px 1fr;height:calc(100vh - 56px);margin-top:56px;}
+#img-map{width:100%;height:100%;}
+.img-panel{overflow-y:auto;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;}
+.p-head{padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+.p-head h4{font-size:.7rem;font-weight:700;color:#1a3a5c;margin:0;text-transform:uppercase;letter-spacing:.05em;}
+.p-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.upload-zone{border:2px dashed #cbd5e1;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:.15s;background:#f8fafc;}
+.upload-zone:hover,.upload-zone.drag{border-color:#1a3a5c;background:#eff6ff;}
+.upload-zone input{display:none;}
+.upload-zone-text{font-size:.78rem;color:#6b7280;margin-top:6px;}
+.upload-zone-icon{font-size:1.6rem;color:#94a3b8;}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.f-label{font-size:.65rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px;}
+.f-inp{width:100%;border:1px solid #e5e7eb;border-radius:5px;padding:7px 10px;font-size:.78rem;font-family:Inter,sans-serif;outline:none;background:#f8fafc;}
+.f-inp:focus{border-color:#1a3a5c;background:#fff;}
+.u-btn{background:#1a3a5c;color:#fff;border:none;border-radius:5px;padding:9px;font-size:.78rem;font-weight:600;cursor:pointer;width:100%;font-family:Inter,sans-serif;transition:.15s;}
+.u-btn:hover{background:#1e4976;}
+.u-btn:disabled{background:#9ca3af;cursor:not-allowed;}
+.progress-bar{width:100%;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;display:none;}
+.progress-fill{height:100%;background:#1e6e45;border-radius:3px;transition:width .3s;}
+.img-card{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;cursor:pointer;transition:.15s;margin-bottom:8px;}
+.img-card:hover{border-color:#2563eb;box-shadow:0 2px 10px rgba(37,99,235,.1);}
+.img-card img{width:100%;height:120px;object-fit:cover;display:block;}
+.img-card-body{padding:8px 10px;}
+.img-card-title{font-size:.75rem;font-weight:700;color:#1a3a5c;}
+.img-card-sub{font-size:.65rem;color:#6b7280;margin-top:2px;}
+.ndvi-badge{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:2px;text-transform:uppercase;}
+.ndvi-high{background:#f0fdf4;color:#1e6e45;}
+.ndvi-med{background:#fffbeb;color:#b45309;}
+.ndvi-low{background:#fef2f2;color:#b91c1c;}
+.stat-row{display:flex;gap:8px;flex-wrap:wrap;}
+.stat-box{flex:1;min-width:70px;background:#f8fafc;border:1px solid #e5e7eb;border-left:3px solid #1a3a5c;border-radius:5px;padding:8px;text-align:center;}
+.stat-val{font-size:1.2rem;font-weight:800;color:#1a3a5c;}
+.stat-lbl{font-size:.6rem;color:#6b7280;text-transform:uppercase;}
+.alert-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:5px;padding:9px 12px;font-size:.75rem;font-weight:500;display:none;}
+.alert-err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:5px;padding:9px 12px;font-size:.75rem;font-weight:500;display:none;}
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav class="dash-nav">
+  <div class="dash-nav-brand">
+    <img src="logo.png" alt="AgriTraceX" class="nav-logo" onerror="this.style.display='none'">
+    <span class="nav-brand-name">AgriTraceX</span>
+    <span class="nav-role-pill pill-analyst">SURVEY IMAGES</span>
+  </div>
+  <div class="dash-nav-links">
+    <a href="index.html" data-i18n="home">Home</a>
+    <a href="dashboard-drone.html" data-i18n="drone">Drone</a>
+    <a href="gis-map.html" data-i18n="gisMap">GIS Map</a>
+    <a href="survey-images.html" class="active" data-i18n="images">Images</a>
+  </div>
+  <div class="dash-nav-right">
+    <a href="index.html" class="nav-logout" data-i18n="logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="img-layout">
+  <!-- Left Panel -->
+  <div class="img-panel">
+
+    <!-- Stats -->
+    <div class="p-head"><h4 data-i18n="images">Image Repository</h4><button onclick="loadImages()" style="font-size:.65rem;color:#2563eb;background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;">Refresh</button></div>
+    <div class="p-body">
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="s-total">0</div><div class="stat-lbl" data-i18n="images">Images</div></div>
+        <div class="stat-box" style="border-left-color:#1e6e45;"><div class="stat-val" id="s-missions" style="color:#1e6e45;">0</div><div class="stat-lbl">Missions</div></div>
+        <div class="stat-box" style="border-left-color:#2563eb;"><div class="stat-val" id="s-avg-ndvi" style="color:#2563eb;">—</div><div class="stat-lbl">Avg NDVI</div></div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="p-head"><h4>Upload Geo-Tagged Image</h4></div>
+    <div class="p-body">
+      <div class="alert-ok" id="a-ok">Image uploaded and pinned on map.</div>
+      <div class="alert-err" id="a-err">Upload failed. Check fields.</div>
+
+      <!-- Drop zone -->
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('img-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="upload-zone-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+        </div>
+        <div class="upload-zone-text">Click or drag image here<br><span style="font-size:.65rem;">JPG, PNG, TIFF, WebP — max 50 MB</span></div>
+        <input type="file" id="img-file" accept=".jpg,.jpeg,.png,.tif,.tiff,.webp" onchange="onFileSelect(this)">
+      </div>
+      <div id="preview-wrap" style="display:none;border-radius:6px;overflow:hidden;">
+        <img id="img-preview" style="width:100%;max-height:140px;object-fit:cover;" alt="Preview">
+      </div>
+
+      <!-- Metadata fields -->
+      <div class="meta-row">
+        <div><label class="f-label">GPS Latitude</label><input class="f-inp" id="f-lat" placeholder="e.g. 30.9009"></div>
+        <div><label class="f-label">GPS Longitude</label><input class="f-inp" id="f-lng" placeholder="e.g. 75.8572"></div>
+      </div>
+      <div class="meta-row">
+        <div><label class="f-label">Altitude (m)</label><input class="f-inp" id="f-alt" placeholder="e.g. 45" type="number"></div>
+        <div><label class="f-label">NDVI Value (0–1)</label><input class="f-inp" id="f-ndvi" placeholder="e.g. 0.72" type="number" step="0.01" min="0" max="1"></div>
+      </div>
+      <div class="meta-row">
+        <div><label class="f-label">Drone ID</label><input class="f-inp" id="f-drone" value="DRN-X1"></div>
+        <div><label class="f-label">Mission ID</label><input class="f-inp" id="f-msn" placeholder="MSN-2024-001"></div>
+      </div>
+      <div><label class="f-label">AI Analysis Note</label><input class="f-inp" id="f-ai" placeholder="e.g. Wheat crop, early blight detected"></div>
+      <button onclick="useMyLocation()" class="u-btn" style="background:#2563eb;">Use My GPS Location</button>
+      <div class="progress-bar" id="prog-bar"><div class="progress-fill" id="prog-fill" style="width:0%;"></div></div>
+      <button class="u-btn" id="upload-btn" onclick="uploadImage()">Upload &amp; Pin on Map</button>
+    </div>
+
+    <!-- Image list -->
+    <div class="p-head" style="margin-top:4px;"><h4>Uploaded Images</h4></div>
+    <div style="padding:8px;overflow-y:auto;flex:1;" id="img-list">
+      <p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px;">No images uploaded yet.</p>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div style="position:relative;height:100%;">
+    <div id="img-map"></div>
+    <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:800;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 18px;display:flex;gap:16px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.08);font-size:.72rem;white-space:nowrap;">
+      <span style="font-weight:700;color:#1a3a5c;">Geo-Tagged Image Map</span>
+      <span id="map-count" style="color:#1e6e45;font-weight:700;">0 images plotted</span>
+      <span style="color:#6b7280;" id="map-coord">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="agri-toast" id="agri-toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── Map ─────────────────────────────────────────────────────────────────────
+const map = L.map('img-map').setView([30.9009, 75.8572], 11);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution:'Esri World Imagery', maxZoom:19 }).addTo(map);
+L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { opacity:0, maxZoom:20 }); // preload
+map.on('mousemove', e => document.getElementById('map-coord').textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`);
+map.on('click', e => { document.getElementById('f-lat').value = e.latlng.lat.toFixed(6); document.getElementById('f-lng').value = e.latlng.lng.toFixed(6); showToast('Coordinates captured from map click'); });
+
+const imageLayer = L.layerGroup().addTo(map);
+
+// ── File select ──────────────────────────────────────────────────────────────
+let selectedFile = null;
+function onFileSelect(input) {
+  if (!input.files[0]) return;
+  selectedFile = input.files[0];
+  const url = URL.createObjectURL(selectedFile);
+  document.getElementById('img-preview').src = url;
+  document.getElementById('preview-wrap').style.display = 'block';
+  document.getElementById('drop-zone').querySelector('.upload-zone-text').innerHTML = `<strong>${selectedFile.name}</strong><br><span style="font-size:.65rem;">${(selectedFile.size/1024/1024).toFixed(2)} MB</span>`;
+  // Try to pull GPS from EXIF (basic attempt)
+  tryExtractExif(selectedFile);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) { document.getElementById('img-file').files; selectedFile = file; onFileSelect({ files: [file] }); }
+}
+
+function tryExtractExif(file) {
+  // Browsers don't expose raw EXIF — skip silently; user enters coords manually or via GPS button
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('f-lat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('f-lng').value = pos.coords.longitude.toFixed(6);
+    document.getElementById('f-alt').value = Math.round(pos.coords.altitude || 0);
+    showToast(`GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
+  }, () => showToast('Could not access GPS. Enter coordinates manually.'));
+}
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+async function uploadImage() {
+  if (!selectedFile) { showToast('Select an image file first'); return; }
+  const lat = parseFloat(document.getElementById('f-lat').value);
+  const lng = parseFloat(document.getElementById('f-lng').value);
+  if (!lat || !lng) { showToast('Enter GPS coordinates'); return; }
+
+  const btn = document.getElementById('upload-btn');
+  const prog = document.getElementById('prog-bar');
+  const fill = document.getElementById('prog-fill');
+  btn.disabled = true; btn.textContent = 'Uploading...';
+  prog.style.display = 'block'; fill.style.width = '10%';
+
+  const fd = new FormData();
+  fd.append('image',     selectedFile);
+  fd.append('lat',       lat);
+  fd.append('lng',       lng);
+  fd.append('altitude',  document.getElementById('f-alt').value  || 0);
+  fd.append('ndviValue', document.getElementById('f-ndvi').value || '');
+  fd.append('droneId',   document.getElementById('f-drone').value|| 'DRN-X1');
+  fd.append('missionId', document.getElementById('f-msn').value  || '');
+  fd.append('aiAnalysis',document.getElementById('f-ai').value   || '');
+  fd.append('capturedAt', new Date().toISOString());
+
+  fill.style.width = '40%';
+  try {
+    const token = localStorage.getItem('agriToken');
+    const endpoint = token
+      ? 'http://localhost:3000/api/images/upload'
+      : 'http://localhost:3000/api/images/upload-public';
+    const headers = token ? { Authorization: 'Bearer ' + token } : {};
+    const res = await fetch(endpoint, { method: 'POST', headers, body: fd });
+    fill.style.width = '80%';
+    const data = await res.json();
+    if (data.success) {
+      fill.style.width = '100%';
+      document.getElementById('a-ok').style.display = 'block';
+      document.getElementById('a-err').style.display = 'none';
+      setTimeout(() => { document.getElementById('a-ok').style.display = 'none'; }, 4000);
+      pinImageOnMap(data.image);
+      appendImageCard(data.image);
+      updateStats(1, data.image.ndviValue);
+      showToast('Image uploaded and pinned on map');
+      // Reset
+      selectedFile = null;
+      document.getElementById('img-file').value = '';
+      document.getElementById('preview-wrap').style.display = 'none';
+      document.getElementById('drop-zone').querySelector('.upload-zone-text').innerHTML = 'Click or drag image here<br><span style="font-size:.65rem;">JPG, PNG, TIFF, WebP — max 50 MB</span>';
+    } else throw new Error(data.message);
+  } catch (err) {
+    fill.style.width = '0%';
+    document.getElementById('a-err').textContent = 'Upload failed: ' + err.message;
+    document.getElementById('a-err').style.display = 'block';
+    document.getElementById('a-ok').style.display = 'none';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Upload & Pin on Map';
+    setTimeout(() => { prog.style.display = 'none'; fill.style.width = '0%'; }, 1000);
+  }
+}
+
+// ── Pin image marker on map ───────────────────────────────────────────────────
+function pinImageOnMap(img) {
+  const lat = parseFloat(img.lat), lng = parseFloat(img.lng);
+  if (!lat || !lng) return;
+
+  const ndvi = img.ndviValue;
+  const color = ndvi >= 0.6 ? '#1e6e45' : ndvi >= 0.35 ? '#b45309' : '#b91c1c';
+
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;"></div>`,
+    iconSize: [14,14], iconAnchor:[7,7]
+  });
+
+  const marker = L.marker([lat, lng], { icon }).addTo(imageLayer);
+  const capturedAt = img.capturedAt ? new Date(img.capturedAt).toLocaleString() : '—';
+  marker.bindPopup(`
+    <div style="font-family:Inter,sans-serif;min-width:200px;">
+      <img src="http://localhost:3000${img.url}" style="width:100%;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;" onerror="this.style.display='none'">
+      <div style="font-size:.8rem;font-weight:700;color:#1a3a5c;margin-bottom:4px;">${img.filename}</div>
+      <table style="font-size:.72rem;width:100%;">
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;" data-i18n="drone">Drone</td><td style="font-weight:600;">${img.droneId||'—'}</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Altitude</td><td style="font-weight:600;">${img.altitude||0}m</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">NDVI</td><td style="font-weight:600;">${ndvi != null ? ndvi.toFixed(3) : '—'}</td></tr>
+        <tr><td style="color:#6b7280;padding:2px 8px 2px 0;">Time</td><td style="font-weight:600;">${capturedAt}</td></tr>
+        ${img.aiAnalysis ? `<tr><td style="color:#6b7280;padding:2px 8px 2px 0;">AI Note</td><td style="font-weight:600;">${img.aiAnalysis}</td></tr>` : ''}
+      </table>
+      <a href="http://localhost:3000${img.url}" target="_blank" style="font-size:.68rem;color:#2563eb;display:inline-block;margin-top:6px;">View Full Image</a>
+    </div>`);
+
+  map.flyTo([lat, lng], 15, { duration:1.2 });
+  document.getElementById('map-count').textContent = imageLayer.getLayers().length + ' images plotted';
+}
+
+// ── Append card in sidebar ────────────────────────────────────────────────────
+function appendImageCard(img) {
+  const list = document.getElementById('img-list');
+  const p = list.querySelector('p');
+  if (p) p.remove();
+
+  const ndvi = img.ndviValue;
+  const ndviClass = ndvi >= 0.6 ? 'ndvi-high' : ndvi >= 0.35 ? 'ndvi-med' : 'ndvi-low';
+  const capturedAt = img.capturedAt ? new Date(img.capturedAt).toLocaleString() : '—';
+
+  const card = document.createElement('div');
+  card.className = 'img-card';
+  card.innerHTML = `
+    <img src="http://localhost:3000${img.url}" alt="${img.filename}" onerror="this.style.display='none'">
+    <div class="img-card-body">
+      <div class="img-card-title">${img.filename}</div>
+      <div class="img-card-sub">${img.droneId||'—'} &bull; ${img.altitude||0}m &bull; ${capturedAt}</div>
+      <div style="margin-top:4px;">
+        <span class="ndvi-badge ${ndviClass}">NDVI: ${ndvi != null ? ndvi.toFixed(3) : '—'}</span>
+        ${img.aiAnalysis ? `<span style="font-size:.65rem;color:#6b7280;margin-left:6px;">${img.aiAnalysis}</span>` : ''}
+      </div>
+    </div>`;
+  card.onclick = () => { if (img.lat && img.lng) map.flyTo([img.lat, img.lng], 16, {duration:1}); };
+  list.insertBefore(card, list.firstChild);
+}
+
+// ── Load all existing images ──────────────────────────────────────────────────
+let statsTotal = 0, ndviSum = 0, ndviCount = 0, missionSet = new Set();
+function updateStats(addCount, ndvi) {
+  statsTotal += addCount;
+  if (ndvi != null) { ndviSum += ndvi; ndviCount++; }
+  document.getElementById('s-total').textContent = statsTotal;
+  document.getElementById('s-avg-ndvi').textContent = ndviCount ? (ndviSum/ndviCount).toFixed(2) : '—';
+  document.getElementById('s-missions').textContent = missionSet.size;
+}
+
+async function loadImages() {
+  try {
+    const res = await fetch('http://localhost:3000/api/images/all-public');
+    const data = await res.json();
+    const features = data.features || [];
+    imageLayer.clearLayers();
+    document.getElementById('img-list').innerHTML = features.length ? '' : '<p style="font-size:.75rem;color:#6b7280;text-align:center;padding:16px;">No images uploaded yet.</p>';
+    statsTotal = 0; ndviSum = 0; ndviCount = 0; missionSet.clear();
+    features.forEach(f => {
+      const img = { ...f.properties, lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] };
+      pinImageOnMap(img);
+      appendImageCard(img);
+      if (img.missionId) missionSet.add(img.missionId);
+      updateStats(1, img.ndviValue);
+    });
+    document.getElementById('s-total').textContent = features.length;
+    if (features.length) map.fitBounds(imageLayer.getBounds(), { padding:[40,40] });
+  } catch { showToast('Could not load images from backend'); }
+}
+
+// ── Socket.IO: live image captured event ─────────────────────────────────────
+const socket = io('http://localhost:3000');
+socket.on('image:captured', data => {
+  pinImageOnMap({ ...data, url: data.url, filename: data.filename });
+  appendImageCard({ ...data, url: data.url, filename: data.filename });
+  updateStats(1, data.ndviValue);
+  showToast(`Live: new image captured by ${data.droneId||'drone'}`);
+});
+
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('agri-toast'); if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// Map click → populate coords
+map.on('click', e => {
+  document.getElementById('f-lat').value = e.latlng.lat.toFixed(6);
+  document.getElementById('f-lng').value = e.latlng.lng.toFixed(6);
+  showToast('Coordinates set from map click');
+});
+
+loadImages();
+</script>
+</body>
+</html>

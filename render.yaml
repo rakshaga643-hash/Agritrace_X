@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: agritracex
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install
+    startCommand: node start.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false   # Set manually in Render dashboard → MongoDB Atlas URI

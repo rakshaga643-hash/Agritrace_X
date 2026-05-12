@@ -1,0 +1,6 @@
+node_modules/
+.env
+uploads/survey/*
+!uploads/survey/.gitkeep
+*.log
+.DS_Store

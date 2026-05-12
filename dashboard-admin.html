@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin — AgriTrace X</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="stylesheet" href="shared-dash.css">
+</head>
+<body>
+  <nav class="dash-nav admin-nav">
+    <div class="dash-nav-left">
+      <img src="logo.png" alt="AgriTrace X" class="nav-logo-img">
+      <span class="dash-role-badge admin">Super Admin</span>
+    </div>
+    <div class="dash-nav-links">
+      <a href="#" class="active">Command Center</a>
+      <a href="dashboard-ai.html">🧠 AI Intelligence</a>
+      <a href="#">User Management</a>
+      <a href="#">Drone Fleet</a>
+      <a href="#">District Intel</a>
+      <a href="#">System Alerts</a>
+    </div>
+    <div class="dash-nav-right">
+      <span class="dash-user" id="dash-user">ADMIN_001</span>
+      <a href="index.html" class="dash-logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dash-body" style="display:block; overflow-y:auto; padding:24px;">
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi-card"><span class="kpi-val" style="color:#276749;">24,200</span><span class="kpi-label">Ha Under Monitoring</span></div>
+      <div class="kpi-card"><span class="kpi-val" style="color:#2b6cb0;">16</span><span class="kpi-label">Active Drones</span></div>
+      <div class="kpi-card"><span class="kpi-val" style="color:#553c9a;">1,240</span><span class="kpi-label">Registered Farmers</span></div>
+      <div class="kpi-card"><span class="kpi-val" style="color:#c53030;">5</span><span class="kpi-label">System Alerts</span></div>
+      <div class="kpi-card"><span class="kpi-val" style="color:#d69e2e;">142</span><span class="kpi-label">Active Insurance Claims</span></div>
+      <div class="kpi-card"><span class="kpi-val" style="color:#276749;">98.4%</span><span class="kpi-label">System Uptime</span></div>
+    </div>
+
+    <!-- Main admin grid: map + tables -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+      <!-- Statewide GIS Map -->
+      <div class="d-card" style="grid-column: span 2;">
+        <div class="d-card-header">
+          <h3>Statewide GIS Intelligence Map</h3>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span class="badge-live">● 16 Drones Active</span>
+            <span style="font-size:0.72rem; color:#718096;">Punjab State — Live View</span>
+          </div>
+        </div>
+        <div style="height:320px; position:relative;">
+          <div id="admin-map" style="height:100%; width:100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analyst-grid">
+      <!-- User Management -->
+      <div class="d-card" style="grid-column: span 2;">
+        <div class="d-card-header"><h3>User Management</h3><button class="d-btn" style="padding:5px 12px; font-size:0.75rem;">+ Add User</button></div>
+        <div class="d-card-body" style="padding:0;">
+          <table class="data-table">
+            <thead><tr><th>User ID</th><th>Name</th><th>Role</th><th>District</th><th>Last Login</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>FARMER_091A</td><td>Rajinder Singh</td><td><span class="role-chip farmer-chip" data-i18n="farmer">Farmer</span></td><td>Ludhiana</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+              <tr><td>DRONE_A01</td><td>Arjun Mehta</td><td><span class="role-chip drone-chip">Drone Agent</span></td><td>Patiala</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+              <tr><td>ANALYST_01</td><td>Priya Sharma</td><td><span class="role-chip analyst-chip">Analyst</span></td><td>Amritsar</td><td>11 May 2026</td><td><span class="status-pill green-pill">Active</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+              <tr><td>INS_AG01</td><td>Vikram Bhatia</td><td><span class="role-chip insurance-chip">Insurance</span></td><td>Jalandhar</td><td>10 May 2026</td><td><span class="status-pill amber-pill">Idle</span></td><td><button class="d-btn-sm">Edit</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Drone Fleet -->
+      <div class="d-card">
+        <div class="d-card-header"><h3>Drone Fleet Status</h3><span class="badge-count">16 Active</span></div>
+        <div class="d-card-body" style="padding:0;">
+          <table class="data-table" style="font-size:0.78rem;">
+            <thead><tr><th>Drone ID</th><th>Zone</th><th>Battery</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>DRN-X1</td><td>Alpha</td><td>84%</td><td><span class="status-pill green-pill">In Flight</span></td></tr>
+              <tr><td>DRN-X2</td><td>Beta</td><td>67%</td><td><span class="status-pill green-pill">In Flight</span></td></tr>
+              <tr><td>DRN-X3</td><td>Gamma</td><td>32%</td><td><span class="status-pill amber-pill">Low Bat</span></td></tr>
+              <tr><td>DRN-X4</td><td>Theta</td><td>91%</td><td><span class="status-pill green-pill">In Flight</span></td></tr>
+              <tr><td>DRN-X5</td><td>—</td><td>100%</td><td><span class="status-pill blue-pill">Standby</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Alerts -->
+      <div class="d-card">
+        <div class="d-card-header"><h3>System Alerts</h3><span class="badge-count red-badge">5 Active</span></div>
+        <div class="d-card-body" style="gap:8px;">
+          <div class="anomaly-item red"><strong>🦗 Locust Alert</strong> — Zone Gamma, Jalandhar</div>
+          <div class="anomaly-item red"><strong>🌿 Disease Detected</strong> — Zone Zeta, Amritsar</div>
+          <div class="anomaly-item amber"><strong>💧 Water Stress</strong> — Zone Beta, Patiala</div>
+          <div class="anomaly-item amber"><strong>🔋 Drone Low Battery</strong> — DRN-X3 (32%)</div>
+          <div class="anomaly-item blue"><strong>🌊 Flood Risk</strong> — Zone Theta, Ludhiana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    document.getElementById('dash-user').textContent = sessionStorage.getItem('agriUser') || 'ADMIN_001';
+
+    const map = L.map('admin-map', { zoomControl: false }).setView([30.9009, 75.8572], 10);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { attribution: '© Google', maxZoom: 20 }).addTo(map);
+
+    // District zones
+    L.polygon([[30.880,75.820],[30.910,75.830],[30.905,75.870],[30.875,75.860]], { color:'#276749', fillColor:'#276749', fillOpacity:0.15, weight:2 }).addTo(map).bindPopup('Zone Alpha — Healthy');
+    L.polygon([[30.920,75.880],[30.950,75.890],[30.940,75.920],[30.910,75.910]], { color:'#c05621', fillColor:'#d69e2e', fillOpacity:0.18, weight:2 }).addTo(map).bindPopup('Zone Beta — Water Stress');
+    L.polygon([[30.830,75.780],[30.860,75.790],[30.855,75.810],[30.825,75.800]], { color:'#9b2c2c', fillColor:'#c53030', fillOpacity:0.2, weight:2 }).addTo(map).bindPopup('Zone Gamma — Pest Alert');
+    L.polygon([[30.875,75.800],[30.885,75.810],[30.880,75.825],[30.870,75.818]], { color:'#2b6cb0', fillColor:'#3182ce', fillOpacity:0.22, weight:2 }).addTo(map).bindPopup('Zone Theta — Flood');
+
+    // Multiple drones
+    const dronePositions = [[30.92,75.83],[30.85,75.88],[30.84,75.79],[30.88,75.81]];
+    dronePositions.forEach((pos, i) => {
+      L.marker(pos, { zIndexOffset: 1000 }).addTo(map).bindPopup(`DRN-X${i+1} — Active`);
+    });
+  </script>
+</body>
+</html>
