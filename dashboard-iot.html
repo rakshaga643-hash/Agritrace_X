@@ -65,7 +65,7 @@ html,body{min-height:100%;background:#f0f4f8;}
 /* ── Toast ── */
 </style>
 </head>
-<body>
+<body data-page="iot">
 <nav class="dash-nav">
   <div class="dash-nav-brand">
     <img src="logo.png" alt="AgriTraceX" class="nav-logo" onerror="this.style.display='none'">
@@ -131,6 +131,7 @@ html,body{min-height:100%;background:#f0f4f8;}
 <div class="agri-toast" id="agri-toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="socket-client.js"></script>
 <script>
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showToast(m,d=3000){const t=document.getElementById('agri-toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}

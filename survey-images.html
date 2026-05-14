@@ -48,7 +48,7 @@ html,body{height:100%;overflow:hidden;}
 <script src="i18n.js"></script>
 <script src="i18n-extra.js"></script>
 </head>
-<body>
+<body data-page="images">
 <nav class="dash-nav">
   <div class="dash-nav-brand">
     <img src="logo.png" alt="AgriTraceX" class="nav-logo" onerror="this.style.display='none'">
@@ -139,6 +139,7 @@ html,body{height:100%;overflow:hidden;}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="socket-client.js"></script>
 <script>
 // ── Map ─────────────────────────────────────────────────────────────────────
 const map = L.map('img-map').setView([30.9009, 75.8572], 11);
