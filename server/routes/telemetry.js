@@ -76,8 +76,10 @@ router.post('/ingest', async (req, res) => {
     const altitude       = clamp(b.altitude,       -500, 15000, 'altitude',       warnings);
     const heading        = clamp(b.heading,            0,   360, 'heading',        warnings);
     const speed          = clamp(b.speed,              0,   500, 'speed',          warnings);
-    const batteryPct     = clamp(b.batteryPct,         0,   100, 'batteryPct',     warnings);
-    const signalStrength = clamp(b.signalStrength,     0,   100, 'signalStrength', warnings);
+    // Accept 'battery' (ESP32) OR 'batteryPct' (simulator/DJI)
+    const batteryPct     = clamp(b.batteryPct ?? b.battery, 0, 100, 'batteryPct', warnings);
+    // Accept 'signal' (ESP32) OR 'signalStrength' (simulator)
+    const signalStrength = clamp(b.signalStrength ?? b.signal, 0, 100, 'signalStrength', warnings);
     const satellites     = clamp(b.satellites,         0,    50, 'satellites',     warnings);
     const ndviReading    = clamp(b.ndviReading,        0,     1, 'ndviReading',    warnings);
     const soilMoisture   = clamp(b.soilMoisture,       0,   100, 'soilMoisture',   warnings);
@@ -162,20 +164,38 @@ router.post('/ingest', async (req, res) => {
 });
 
 
-// ── GET /api/telemetry/:droneId/latest ────────────────────────────────────
-router.get('/:droneId/latest', protect, async (req, res) => {
+// ── GET /api/telemetry/live ── all active drones (public, for dashboard) ──
+router.get('/live', async (req, res) => {
   try {
-    const latest = await Telemetry.findOne({ droneId: req.params.droneId }).sort({ timestamp: -1 });
-    res.json({ success: true, telemetry: latest });
+    const since = new Date(Date.now() - 60000); // active in last 60s
+    const drones = await Telemetry.aggregate([
+      { $sort: { timestamp: -1 } },
+      { $group: { _id: '$droneId', doc: { $first: '$$ROOT' } } },
+      { $replaceRoot: { newRoot: '$doc' } },
+      { $project: { droneId:1, lat:1, lng:1, altitude:1, batteryPct:1, speed:1, heading:1, flightMode:1, signalStrength:1, satellites:1, timestamp:1 } },
+    ]);
+    const active = drones.map(d => ({ ...d, online: new Date(d.timestamp) > since }));
+    res.json({ success: true, count: active.length, drones: active });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// ── GET /api/telemetry/:droneId/history ─── path history ──────────────────
-router.get('/:droneId/history', protect, async (req, res) => {
+// ── GET /api/telemetry/:droneId/latest ── public (no auth needed) ─────────
+router.get('/:droneId/latest', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 200;
+    const latest = await Telemetry.findOne({ droneId: req.params.droneId }).sort({ timestamp: -1 });
+    if (!latest) return res.json({ success: false, message: 'No telemetry found' });
+    res.json({ success: true, telemetry: latest, online: (Date.now() - new Date(latest.timestamp)) < 30000 });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// ── GET /api/telemetry/:droneId/history ── public, path history for map ───
+router.get('/:droneId/history', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 200, 500);
     const since = req.query.since ? new Date(req.query.since) : new Date(Date.now() - 3600000);
-    const history = await Telemetry.find({ droneId: req.params.droneId, timestamp: { $gte: since } }).sort({ timestamp: 1 }).limit(limit).select('lat lng altitude batteryPct speed timestamp');
+    const history = await Telemetry.find({ droneId: req.params.droneId, timestamp: { $gte: since } })
+      .sort({ timestamp: 1 }).limit(limit)
+      .select('lat lng altitude batteryPct speed heading flightMode timestamp');
     res.json({ success: true, count: history.length, history });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

@@ -257,28 +257,31 @@ socket.on('telemetry', data => {
 });
 
 function applyTelemetry(data) {
-  const { droneId, lat, lng, altitude, batteryPct, speed, heading, satellites, signalStrength, flightMode, protocol, timestamp } = data;
+  // Accept both ESP32 field names (battery/signal) and simulator names (batteryPct/signalStrength)
+  const batteryPct     = data.batteryPct     ?? data.battery;
+  const signalStrength = data.signalStrength  ?? data.signal;
+  const { droneId, lat, lng, altitude, speed, heading, satellites, flightMode, protocol, timestamp } = data;
   if (!lat || !lng) return;
 
   // Update map marker
   updateDronePosition(lat, lng, droneId || 'DRN-X1');
 
-  // Update UI
+  // Update UI cards
   const el = id => document.getElementById(id);
   if (batteryPct != null) {
     el('t-bat').textContent = batteryPct + '%';
     el('bat-bar').style.width = batteryPct + '%';
     el('bat-bar').style.background = batteryPct < 20 ? '#b91c1c' : batteryPct < 40 ? '#b45309' : '#1e6e45';
-    el('telem-card-bat')?.style && (el('t-bat').parentElement.style.borderLeftColor = batteryPct < 20 ? '#b91c1c' : '#1e6e45');
+    el('t-bat').parentElement.style.borderLeftColor = batteryPct < 20 ? '#b91c1c' : '#1e6e45';
   }
-  if (altitude != null) el('t-alt').textContent = parseFloat(altitude).toFixed(1);
-  if (speed     != null) el('t-spd').textContent = parseFloat(speed).toFixed(1);
-  if (heading   != null) el('t-hdg').textContent = Math.round(heading) + '°';
-  el('t-gps').textContent   = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
-  if (satellites    != null) el('t-sat').textContent  = satellites;
-  if (signalStrength!= null) el('t-sig').textContent  = signalStrength + '%';
-  if (flightMode    != null) el('t-mode').textContent = flightMode;
-  if (protocol      != null) el('t-proto').textContent= protocol;
+  if (altitude        != null) el('t-alt').textContent  = parseFloat(altitude).toFixed(1);
+  if (speed           != null) el('t-spd').textContent  = parseFloat(speed).toFixed(1);
+  if (heading         != null) el('t-hdg').textContent  = Math.round(heading) + '°';
+  el('t-gps').textContent = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
+  if (satellites      != null) el('t-sat').textContent  = satellites;
+  if (signalStrength  != null) el('t-sig').textContent  = signalStrength + '%';
+  if (flightMode      != null) el('t-mode').textContent = flightMode;
+  if (protocol        != null) el('t-proto').textContent= protocol;
 
   packetCount++;
   el('t-pkts').textContent = packetCount;
@@ -417,6 +420,31 @@ console.log(`
 const user = localStorage.getItem('agriUser');
 if (user) { try { document.getElementById('user-display').textContent = JSON.parse(user).name || '—'; } catch {} }
 loadMissions();
+
+// ── On-load HTTP poll: show existing drone data immediately ───────────────
+async function loadLatestTelemetry() {
+  try {
+    const res = await fetch('http://localhost:3000/api/telemetry/live');
+    const d   = await res.json();
+    if (d.success && d.drones && d.drones.length) {
+      d.drones.forEach(drone => {
+        if (drone.lat && drone.lng) {
+          applyTelemetry(drone);
+          addLog(`[RESTORE] Loaded ${drone.droneId} — ${drone.online ? 'Online' : 'Last seen: '+new Date(drone.timestamp).toLocaleTimeString()}`);
+        }
+      });
+      showToast(`Loaded ${d.drones.length} drone(s) from server`);
+    } else {
+      addLog('No prior telemetry — waiting for live packets...');
+    }
+  } catch (e) {
+    addLog('Could not load telemetry history: ' + e.message);
+  }
+}
+loadLatestTelemetry();
+
+// Poll /live every 30s as fallback if Socket.IO misses packets
+setInterval(loadLatestTelemetry, 30000);
 </script>
 </body>
 </html>
